@@ -1,36 +1,168 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Dyad Next.js Docker Template
+This template provides a robust boilerplate for building and deploying Next.js applications fully containerized with Docker, leveraging GitHub Container Registry (GHCR) for image hosting, and using SQLite with Prisma as the backend database. It also includes configuration for Next.js API proxying to handle external API integrations and CORS issues seamlessly.
 
-## Getting Started
+✨ Features
+Next.js: A powerful React framework for building full-stack web applications.
 
-First, run the development server:
+Docker & Docker Compose: Containerize your application for consistent environments across development, testing, and production. Run your entire stack locally with a single command.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+GitHub Container Registry (GHCR): Automate your Docker image builds and push them to GHCR using GitHub Actions, providing a secure and integrated package registry.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+SQLite: A lightweight, file-based database ideal for local development and smaller-scale applications, integrated directly into your Docker container.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Prisma ORM: A modern database toolkit that simplifies database access, migrations, and schema management for SQLite (and other databases).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Next.js API Proxying (Rewrites): Built-in configuration to proxy requests to external APIs from your Next.js backend, helping to bypass client-side CORS restrictions.
 
-## Learn More
+Dyad-ready: Optimized for deployment on the Dyad platform, leveraging your GHCR-hosted Docker image.
 
-To learn more about Next.js, take a look at the following resources:
+🚀 Getting Started
+To use this template, follow these steps:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Prerequisites
+Before you begin, ensure you have the following installed:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Git: For version control.
 
-## Deploy on Vercel
+Node.js: (v18 or higher recommended) and npm or Yarn.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Docker & Docker Compose: For building and running containers.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+GitHub Account: For using GHCR and GitHub Actions.
+
+1. Create Your Project from This Template
+Use This Template: On GitHub, navigate to the template repository and click the green "Use this template" button (or "Use this template" -> "Create a new repository").
+
+Clone Your New Repository:
+
+git clone https://github.com/your-username/your-new-repo-name.git
+cd your-new-repo-name
+
+2. Environment Setup
+Copy the example environment variables file:
+
+cp .env.example .env
+
+Now, open the newly created .env file and configure your settings:
+
+DATABASE_URL: Set this to file:/app/data/dev.db for the Docker Compose setup to persist your SQLite database in a mounted volume.
+
+EXTERNAL_API_URL_SERVICE1, EXTERNAL_API_URL_SERVICE2, WEATHER_API_URL: Crucially, replace the placeholder URLs with the actual base URLs of the external APIs you intend to proxy via your Next.js backend. Uncomment these lines.
+
+💾 Database Setup (SQLite & Prisma)
+This template comes pre-configured with Prisma to manage your SQLite database.
+
+Install Dependencies:
+
+npm install # or yarn install
+
+Define Your Database Schema:
+The prisma/schema.prisma file defines your database models. An Example model is provided to get you started. Modify this file to define your application's data structure.
+
+// prisma/schema.prisma
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Example {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+}
+// Add your own models here!
+
+Generate Prisma Client:
+This command generates the Prisma client based on your schema, allowing your Next.js application to interact with your database.
+
+npm run prisma:generate # or yarn prisma:generate
+
+Run Database Migrations:
+This command applies your schema changes to the SQLite database, creating or updating tables.
+
+npm run prisma:migrate # or yarn prisma:migrate
+
+This will create the dev.db file in a location that will be mapped into your Docker container.
+
+🐳 Local Development with Docker Compose
+This template includes a docker-compose.yml file to quickly spin up your application in a Dockerized environment locally.
+
+Build Your Docker Image Locally (Optional but good for testing):
+While GitHub Actions will build your image for GHCR, you can build it locally to ensure your Dockerfile works as expected:
+
+docker build -t your-app-name:local .
+
+Run with Docker Compose:
+Navigate to the root of your project and run:
+
+docker compose up -d
+
+This command:
+
+Builds your Docker image if it hasn't been built or updated.
+
+Starts your Next.js application in a Docker container.
+
+Maps port 3000 from the container to 3000 on your host machine. You can change 3000:3000 in docker-compose.yml to, for example, 8080:3000 to access it on port 8080.
+
+Creates a Docker volume (dyad_db_data) to persist your SQLite database file (dev.db), ensuring your data isn't lost when the container is stopped or removed.
+
+Access Your Application:
+Once the containers are running, open your web browser and navigate to:
+http://localhost:3000
+
+Stop the Application:
+To stop and remove the containers and the associated volume (if you want to reset the database), run:
+
+docker compose down -v
+
+To stop only the containers without removing the volume, use docker compose down.
+
+☁️ GitHub Container Registry (GHCR) Integration
+This template is configured to automatically build and push your Docker image to GHCR.
+
+Workflow: The .github/workflows/main.yml file defines a GitHub Actions workflow that triggers on:
+
+Pushes to the main branch.
+
+Creation of new tags (e.g., v1.0.0).
+
+Image Location: Your Docker image will be pushed to ghcr.io/your-github-username/your-repo-name:latest (or ghcr.io/your-github-username/your-repo-name:v1.0.0 for tags). You can find your images under the "Packages" section of your GitHub repository.
+
+Authentication: The workflow uses the GITHUB_TOKEN to authenticate and push images securely to GHCR.
+
+↔️ Next.js API Proxying (Rewrites)
+The next.config.ts file is configured to allow proxying requests from your Next.js application to external APIs. This is particularly useful for bypassing Cross-Origin Resource Sharing (CORS) issues when making API calls from the browser.
+
+Configuration: The async rewrites() function in next.config.ts uses environment variables (e.g., EXTERNAL_API_URL_SERVICE1) to define the target external APIs.
+
+Usage Example: If you have EXTERNAL_API_URL_SERVICE1=https://api.example.com, a request from your frontend to /api/service1/data will be proxied by your Next.js backend to https://api.example.com/data.
+
+Customization: Add more rewrite rules to next.config.ts and corresponding environment variables in your .env file for each external API you need to proxy.
+
+🚀 Deployment to Dyad
+This template is designed for easy deployment to Dyad. The dyad.yaml file specifies how Dyad should deploy your application.
+
+Image Source: dyad.yaml points to your Docker image on GHCR (e.g., image: ghcr.io/your-github-username/your-repo-name:latest).
+
+Ports: It exposes port 3000, matching your Next.js application's internal port.
+
+Dyad CLI: Refer to the official Dyad documentation on how to use their CLI to deploy your application using this template and your GHCR image.
+
+🛠️ Customization
+Feel free to customize this template to fit your specific needs:
+
+Prisma Schema: Modify prisma/schema.prisma to define your application's data models.
+
+Next.js API Routes: Extend the pages/api/examples.ts or create new API routes to interact with your SQLite database and external services.
+
+Frontend: Build out your Next.js UI components.
+
+Docker Configuration: Adjust the Dockerfile for specific dependencies or optimizations.
+
+Docker Compose: Add more services or configure volumes/networks as needed in docker-compose.yml.
+
+GitHub Actions: Customize the CI/CD workflow (.github/workflows/main.yml) for different branching strategies or testing.
+
+❓ Questions or Issues
+If you have questions or encounter issues, please refer to the documentation for Next.js, Docker, Prisma, GitHub Actions, and Dyad. If you believe there's an issue with the template itself, consider opening an issue in the template repository.

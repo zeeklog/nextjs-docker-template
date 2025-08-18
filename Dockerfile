@@ -32,13 +32,12 @@ COPY --from=builder /app/public ./public
 # If you have static assets in a separate 'static' folder, copy them too
 # COPY --from=builder /app/static ./static
 
-# Ensure SQLite is available. For alpine, you'd install sqlite-libs
-# This command installs `sqlite` and `sqlite-libs` for runtime support.
-# If you are using a different base image (e.g., debian), you might use `apt-get install sqlite3`.
-RUN apk add --no-cache sqlite sqlite-libs
+# IMPORTANT: Removed `apk add --no-cache sqlite sqlite-libs`
+# as sql.js is a pure JavaScript solution and does not require native SQLite libraries.
 
 # Expose the port Next.js will run on
 EXPOSE 3000
 
 # Command to run the Next.js application in production mode
 CMD ["yarn", "start"]
+

@@ -14,24 +14,36 @@ const nextConfig: NextConfig = {
   },
   // Add the rewrites configuration here for multiple external APIs
   async rewrites() {
-    return [
-      {
-        // Example 1: For a primary external API
+    const rewrites = [];
+
+    // Get environment variables
+    const externalApiUrlService1 = process.env.EXTERNAL_API_URL_SERVICE1;
+    const externalApiUrlService2 = process.env.EXTERNAL_API_URL_SERVICE2;
+    const weatherApiUrl = process.env.WEATHER_API_URL;
+
+    // Conditionally add rewrite rules
+    if (externalApiUrlService1) { // Checks if the string is not empty or undefined
+      rewrites.push({
         source: '/api/service1/:path*',
-        destination: `${process.env.EXTERNAL_API_URL_SERVICE1}/:path*`,
-      },
-      {
-        // Example 2: For a secondary external API (e.g., a payment gateway)
+        destination: `${externalApiUrlService1}/:path*`,
+      });
+    }
+
+    if (externalApiUrlService2) { // Checks if the string is not empty or undefined
+      rewrites.push({
         source: '/api/service2/:path*',
-        destination: `${process.env.EXTERNAL_API_URL_SERVICE2}/:path*`,
-      },
-      {
-        // Example 3: For another specific external service (e.g., a weather API)
+        destination: `${externalApiUrlService2}/:path*`,
+      });
+    }
+
+    if (weatherApiUrl) { // Checks if the string is not empty or undefined
+      rewrites.push({
         source: '/api/weather/:path*',
-        destination: `${process.env.WEATHER_API_URL}/:path*`,
-      },
-      // You can add as many rewrite rules as needed for different APIs
-    ];
+        destination: `${weatherApiUrl}/:path*`,
+      });
+    }
+
+    return rewrites;
   },
 };
 

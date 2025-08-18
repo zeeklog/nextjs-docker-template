@@ -1,62 +1,33 @@
-import initSqlJs from 'sql.js';
+import { open } from 'node-sqlite-wasm';
 import path from 'path';
-import fs from 'fs/promises'; // Using promises API for async operations
+import fs from 'fs/promises';
 
 // This variable will hold our singleton database instance
-let dbInstance: initSqlJs.Database | null = null;
-let SQL: initSqlJs.SqlJsStatic | null = null; // Store the initialized SQL.js module
+let dbInstance: any = null; // Type will be node-sqlite-wasm's Database
 
 // Define the path for the SQLite database file
-// It's expected to be relative to the project root, typically mounted via Docker volume.
-// The DATABASE_URL environment variable might look like "file:./data/dev.db"
 const DB_FILE_PATH = process.env.DATABASE_URL?.replace('file:', '') || './data/dev.db';
 const DB_FULL_PATH = path.resolve(process.cwd(), DB_FILE_PATH);
 
-// Define the path to the sql-wasm.wasm file relative to the project root
-// For server-side, it needs to be accessible via fs, not necessarily served by public/
-const SQL_WASM_PATH = path.resolve(process.cwd(), 'public', 'sql-wasm.wasm');
-
 
 /**
- * Initializes the SQL.js WASM module and loads/creates the database.
+ * Initializes and returns a singleton SQLite database connection.
  * If the database file doesn't exist, it will be created.
  * Also ensures that the necessary tables are created if they don't exist.
- * @returns {Promise<initSqlJs.Database>} The database instance.
+ * @returns {Promise<any>} The database instance.
  */
-export async function getDb(): Promise<initSqlJs.Database> {
-  if (dbInstance && SQL) {
+export async function getDb(): Promise<any> {
+  if (dbInstance) {
     return dbInstance;
   }
 
   try {
-    // Initialize SQL.js WASM module (only once)
-    if (!SQL) {
-      // Read the WASM file directly from the file system
-      // This bypasses `locateFile` and ensures it works in Node.js environments
-      const wasmBinary = await fs.readFile(SQL_WASM_PATH);
-      SQL = await initSqlJs({
-        wasmBinary: wasmBinary,
-      });
-      console.log(`SQL.js WASM module initialized from: ${SQL_WASM_PATH}`);
-    }
+    // Ensure the directory for the database file exists
+    await fs.mkdir(path.dirname(DB_FULL_PATH), { recursive: true });
 
-    let buffer: Uint8Array | undefined;
-    try {
-      // Attempt to load existing database file from the file system
-      buffer = await fs.readFile(DB_FULL_PATH);
-      console.log(`Loaded existing database from: ${DB_FULL_PATH}`);
-    } catch (readError: any) {
-      if (readError.code === 'ENOENT') {
-        console.log(`Database file not found at: ${DB_FULL_PATH}. Creating new database in memory.`);
-      } else {
-        console.error('Error reading database file, starting with empty database:', readError);
-      }
-      // If file doesn't exist or other read error, 'buffer' remains undefined,
-      // and a new in-memory database will be created.
-    }
-
-    // Create a new database instance from buffer (if loaded) or an empty one
-    dbInstance = new SQL.Database(buffer);
+    // Open the database connection. `node-sqlite-wasm` handles WASM loading
+    // and file persistence directly based on the provided path.
+    dbInstance = await open(DB_FULL_PATH);
 
     // --- Schema Initialization ---
     // Create the 'Example' table if it doesn't already exist.
@@ -69,51 +40,30 @@ export async function getDb(): Promise<initSqlJs.Database> {
       );
     `);
 
-    console.log(`Successfully connected to SQL.js database.`);
+    console.log(`Successfully connected to SQLite database at: ${DB_FULL_PATH}`);
     return dbInstance;
   } catch (error) {
-    console.error('Failed to initialize SQL.js database:', error);
-    // It's crucial to re-throw the error so the application doesn't proceed
-    // without a database connection.
+    console.error('Failed to initialize SQLite database with node-sqlite-wasm:', error);
     throw error;
   }
 }
 
-/**
- * Exports the current in-memory database to the file system.
- * This function MUST be called after any write operation (INSERT, UPDATE, DELETE)
- * to persist changes to the `dev.db` file.
- */
-export async function saveDb(): Promise<void> {
-  if (!dbInstance) {
-    console.warn('No database instance to save.');
-    return;
-  }
-  try {
-    const data = dbInstance.export(); // Get the entire database as a Uint8Array
-    // Ensure the directory exists before writing the file
-    await fs.mkdir(path.dirname(DB_FULL_PATH), { recursive: true });
-    await fs.writeFile(DB_FULL_PATH, data);
-    console.log(`Database saved to: ${DB_FULL_PATH}`);
-  } catch (error) {
-    console.error('Failed to save SQL.js database:', error);
-    throw error;
-  }
-}
+// With `node-sqlite-wasm`, persistence to the file is handled automatically
+// when you perform write operations (INSERT, UPDATE, DELETE).
+// You do not need a separate `saveDb` function like with `sql.js`'s in-memory model.
 
 // Best effort to close the database when the process exits.
-// Note: In serverless or ephemeral environments, this might not always reliably trigger.
-// Explicitly calling `saveDb` after writes is the main persistence mechanism.
+// This is important for clean shutdown and ensuring all writes are flushed.
 process.on('exit', () => {
   if (dbInstance) {
-    console.log('Closing SQL.js database connection on process exit.');
+    console.log('Closing SQLite database connection on process exit.');
     dbInstance.close();
   }
 });
 
-process.on('SIGINT', () => {
+process.on('SIGINT', () => { // Handle Ctrl+C
   if (dbInstance) {
-    console.log('Closing SQL.js database connection due to SIGINT.');
+    console.log('Closing SQLite database connection due to SIGINT.');
     dbInstance.close();
   }
   process.exit();

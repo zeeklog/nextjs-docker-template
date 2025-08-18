@@ -119,5 +119,8 @@ To ensure consistency and leverage the chosen stack effectively, please follow t
     
   - Strive for strong typing and leverage TypeScript's features to improve code quality and maintainability. Avoid using `any` where possible.
     
+15. **Environment Variables for Dyad Testing**:
+  
+  - For testing and development within the Dyad environment, users can set environment variables directly through the Dyad UI. These variables will be available to the running Next.js application, including those used for API proxying (e.g., `EXTERNAL_API_URL_SERVICE1`) and database paths (`DATABASE_URL`). This allows for quick iteration before pushing to a Docker-based deployment.
 
 By following these guidelines, we can build a more robust, maintainable, and consistent application within the Dockerized Next.js ecosystem.

@@ -1,6 +1,6 @@
 # Dyad Next.js Docker Template
 
-This template provides a robust boilerplate for building and deploying Next.js applications fully containerized with Docker, leveraging GitHub Container Registry (GHCR) for image hosting, and using SQLite with Prisma as the backend database. It also includes configuration for Next.js API proxying to handle external API integrations and CORS issues seamlessly.
+This template provides a robust boilerplate for building and deploying Next.js applications fully containerized with Docker, leveraging GitHub Container Registry (GHCR) for image hosting, and using SQLite with direct `sqlite3` integration as the backend database. It also includes configuration for Next.js API proxying to handle external API integrations and CORS issues seamlessly.
 
 ## ✨ Features
 
@@ -10,9 +10,7 @@ This template provides a robust boilerplate for building and deploying Next.js a
   
 - **GitHub Container Registry (GHCR)**: Automate your Docker image builds and push them to GHCR using GitHub Actions, providing a secure and integrated package registry.
   
-- **SQLite**: A lightweight, file-based database ideal for local development and smaller-scale applications, integrated directly into your Docker container.
-  
-- **Prisma ORM**: A modern database toolkit that simplifies database access, migrations, and schema management for SQLite (and other databases).
+- **SQLite**: A lightweight, file-based database ideal for local development and smaller-scale applications, integrated directly into your Docker container using the `sqlite3` driver.
   
 - **Next.js API Proxying (Rewrites)**: Built-in configuration to proxy requests to external APIs from your Next.js backend, helping to bypass client-side CORS restrictions.
   
@@ -43,8 +41,7 @@ Before you begin, ensure you have the following installed:
 2. **Clone Your New Repository**:
   
   ```
-  git clone https://github.com/your-username/your-new-repo-name.git
-  cd your-new-repo-name
+  git clone https://github.com/your-username/your-new-repo-name.gitcd your-new-repo-name
   ```
   
 
@@ -58,14 +55,14 @@ cp .env.example .env
 
 Now, open the newly created `.env` file and configure your settings:
 
-- `DATABASE_URL`: Set this to `file:/app/data/dev.db` for the Docker Compose setup to persist your SQLite database in a mounted volume.
+- `DATABASE_URL`: Set this to `file:./data/dev.db` for the Docker Compose setup to persist your SQLite database in a mounted volume.
   
 - `EXTERNAL_API_URL_SERVICE1`, `EXTERNAL_API_URL_SERVICE2`, `WEATHER_API_URL`: These environment variables are used for external API proxying. **Set these to the actual base URLs of the external APIs you intend to proxy.** If a variable is left blank or omitted, the corresponding proxy rule will not be active.
   
 
-## 💾 Database Setup (SQLite & Prisma)
+## 💾 Database Setup (SQLite)
 
-This template comes pre-configured with Prisma to manage your SQLite database.
+This template uses **SQLite** for its database, managed directly with the `sqlite3` Node.js library. The initial database file (`dev.db`) and its base schema are automatically created when the application first starts.
 
 1. **Install Dependencies**:
   
@@ -73,58 +70,22 @@ This template comes pre-configured with Prisma to manage your SQLite database.
   npm install # or yarn install
   ```
   
-2. Define Your Database Schema:
-  
-  The prisma/schema.prisma file defines your database models. An Example model is provided to get you started. Modify this file to define your application's data structure.
-  
-  ```
-  // prisma/schema.prisma
-  datasource db {
-   provider = "sqlite"
-   url      = env("DATABASE_URL")
-  }
-  
-  model Example {
-   id        Int      @id @default(autoincrement())
-   name      String
-   createdAt DateTime @default(now())
-  }
-  // Add your own models here!
-  ```
-  
-3. Generate Prisma Client:
-  
-  This command generates the Prisma client based on your schema, allowing your Next.js application to interact with your database.
-  
-  ```
-  npm run prisma:generate # or yarn prisma:generate
-  ```
-  
-4. Run Database Migrations:
-  
-  This command applies your schema changes to the SQLite database, creating or updating tables.
-  
-  ```
-  npm run prisma:migrate # or yarn prisma:migrate
-  ```
-  
-  This will create the `dev.db` file in a location that will be mapped into your Docker container.
+2. **Schema Definition**:
+  The database schema (e.g., the `Example` table) is defined and initialized within `src/lib/database.ts` using `CREATE TABLE IF NOT EXISTS` statements. If you need to add new tables or modify existing ones, you will update this file directly.
   
 
 ## 🐳 Local Development with Docker Compose
 
 This template includes a `docker-compose.yml` file to quickly spin up your application in a Dockerized environment locally.
 
-1. Build Your Docker Image Locally (Optional but good for testing):
-  
-  While GitHub Actions will build your image for GHCR, you can build it locally to ensure your Dockerfile works as expected:
+1. **Build Your Docker Image Locally (Optional but good for testing)**:
+  While GitHub Actions will build your image for GHCR, you can build it locally to ensure your `Dockerfile` works as expected:
   
   ```
   docker build -t your-app-name:local .
   ```
   
-2. Run with Docker Compose:
-  
+2. **Run with Docker Compose**:
   Navigate to the root of your project and run:
   
   ```
@@ -141,18 +102,13 @@ This template includes a `docker-compose.yml` file to quickly spin up your appli
     
   - Creates a Docker volume (`dyad_db_data`) to persist your SQLite database file (`dev.db`), ensuring your data isn't lost when the container is stopped or removed.
     
-3. Access Your Application:
+3. **Access Your Application**:
+  Once the containers are running, open your web browser and navigate to: `http://localhost:3000`
   
-  Once the containers are running, open your web browser and navigate to:
+4. **Test API Endpoints**:
+  The template includes a sample API endpoint at `/api/examples` that interacts with the SQLite database. You can send GET and POST requests to this endpoint to test database functionality. If you've configured `EXTERNAL_API_URL_SERVICE1`, you can also try to test a proxied endpoint like `/api/service1/posts` (assuming the service you configured has a `/posts` endpoint).
   
-  http://localhost:3000
-  
-4. Test API Endpoints:
-  
-  The template includes a sample API endpoint at /api/examples that interacts with the SQLite database. If you've configured EXTERNAL_API_URL_SERVICE1, you can try to test a proxied endpoint like /api/service1/posts (assuming the service you configured has a /posts endpoint).
-  
-5. Stop the Application:
-  
+5. **Stop the Application**:
   To stop and remove the containers and the associated volume (if you want to reset the database), run:
   
   ```
@@ -203,7 +159,7 @@ This template is designed for easy deployment to Dyad. The `dyad.yaml` file spec
 
 Feel free to customize this template to fit your specific needs:
 
-- **Prisma Schema**: Modify `prisma/schema.prisma` to define your application's data models.
+- **Database Schema**: Modify `src/lib/database.ts` to add or alter tables using SQL `CREATE TABLE IF NOT EXISTS` or other DDL statements.
   
 - **Next.js API Routes**: Extend the `pages/api/examples.ts` or create new API routes to interact with your SQLite database and external services.
   
@@ -218,4 +174,4 @@ Feel free to customize this template to fit your specific needs:
 
 ## ❓ Questions or Issues
 
-If you have questions or encounter issues, please refer to the documentation for Next.js, Docker, Prisma, GitHub Actions, and Dyad. If you believe there's an issue with the template itself, consider opening an issue in the template repository.
+If you have questions or encounter issues, please refer to the documentation for Next.js, Docker, `sqlite3`, GitHub Actions, and Dyad. If you believe there's an issue with the template itself, consider opening an issue in the template repository.

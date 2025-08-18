@@ -1,6 +1,6 @@
 # AI Development Rules
 
-This document outlines the technology stack and specific library usage guidelines for this Dockerized Next.js application. Adhering to these rules will help maintain consistency, improve collaboration, and ensure the AI assistant can effectively understand and modify the codebase.
+This document outlines the technology stack and specific library usage guidelines for this Next.js application. Adhering to these rules will help maintain consistency, improve collaboration, and ensure the AI assistant can effectively understand and modify the codebase.
 
 ## Tech Stack Overview
 
@@ -22,9 +22,7 @@ The application is built using the following core technologies:
   
 - **Forms**: React Hook Form for managing form state and validation, typically with Zod for schema validation.
   
-- **Database**: SQLite - A lightweight, file-based database.
-  
-- **ORM**: Prisma - A modern database toolkit for simplified database access and migrations.
+- **Database**: SQLite - A lightweight, file-based database, directly integrated using the `sqlite3` Node.js library.
   
 - **State Management**: Primarily React Context API and built-in React hooks (`useState`, `useReducer`).
   
@@ -66,13 +64,13 @@ To ensure consistency and leverage the chosen stack effectively, please follow t
     
   - **Validation**: Use `zod` for schema-based validation with `react-hook-form` via `@hookform/resolvers`.
     
-5. **Database (Prisma & SQLite)**:
+5. **Database (SQLite)**:
   
-  - **ORM**: Interact with the SQLite database exclusively through **Prisma Client**.
+  - **Integration**: Interact with the SQLite database directly using the **`sqlite3` Node.js library** via the utility functions in `src/lib/database.ts`.
     
-  - **Schema**: Database schema is defined in `prisma/schema.prisma`. All model changes must be reflected there.
+  - **Schema**: Database schema is defined and managed programmatically within `src/lib/database.ts` using `CREATE TABLE IF NOT EXISTS` statements. All table additions or alterations should be made by modifying this file.
     
-  - **Migrations**: Use Prisma Migrate for schema evolution. Avoid direct database modifications where possible.
+  - **Initialization**: The initial database file (`dev.db`) and its base schema are automatically created when the application first starts, so no manual migration commands are required for initial setup.
     
   - **Database File**: The SQLite database file (`dev.db` by default) is expected to reside in the `/app/data/` directory within the Docker container for persistence via volume mapping.
     

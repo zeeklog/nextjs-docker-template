@@ -12,6 +12,11 @@ let SQL: initSqlJs.SqlJsStatic | null = null; // Store the initialized SQL.js mo
 const DB_FILE_PATH = process.env.DATABASE_URL?.replace('file:', '') || './data/dev.db';
 const DB_FULL_PATH = path.resolve(process.cwd(), DB_FILE_PATH);
 
+// Define the path to the sql-wasm.wasm file relative to the project root
+// For server-side, it needs to be accessible via fs, not necessarily served by public/
+const SQL_WASM_PATH = path.resolve(process.cwd(), 'public', 'sql-wasm.wasm');
+
+
 /**
  * Initializes the SQL.js WASM module and loads/creates the database.
  * If the database file doesn't exist, it will be created.
@@ -25,11 +30,14 @@ export async function getDb(): Promise<initSqlJs.Database> {
 
   try {
     // Initialize SQL.js WASM module (only once)
-    // Place sql-wasm.wasm in your `public` directory so Next.js can serve it.
     if (!SQL) {
+      // Read the WASM file directly from the file system
+      // This bypasses `locateFile` and ensures it works in Node.js environments
+      const wasmBinary = await fs.readFile(SQL_WASM_PATH);
       SQL = await initSqlJs({
-        locateFile: file => `/sql-wasm.wasm`,
+        wasmBinary: wasmBinary,
       });
+      console.log(`SQL.js WASM module initialized from: ${SQL_WASM_PATH}`);
     }
 
     let buffer: Uint8Array | undefined;

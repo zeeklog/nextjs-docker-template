@@ -72,7 +72,7 @@ To ensure consistency and leverage the chosen stack effectively, please follow t
     
   - **Persistence**: Any changes to the database (inserts, updates, deletes) are performed in memory and then **must be explicitly saved to the `dev.db` file by calling `saveDb()`** from `src/lib/database.ts` after the operation.
     
-  - **Initialization**: The initial database file (`dev.db`) and its base schema are automatically created when the application first starts, so no manual migration commands are required for initial setup.
+  - **Initialization**: The initial database file (`dev.db`) and its base schema are automatically created when the application first starts. The `sql-wasm.wasm` file is loaded directly from the file system (`public/sql-wasm.wasm`) during initialization, ensuring robust server-side operation.
     
   - **Database File**: The SQLite database file (`dev.db` by default) is expected to reside in the `/app/data/` directory within the Docker container for persistence via volume mapping.
     

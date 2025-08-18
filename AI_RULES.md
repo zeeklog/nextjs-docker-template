@@ -22,7 +22,7 @@ The application is built using the following core technologies:
   
 - **Forms**: React Hook Form for managing form state and validation, typically with Zod for schema validation.
   
-- **Database**: SQLite - A lightweight, file-based database, directly integrated using the `sql.js` library.
+- **Database**: SQLite - A lightweight, file-based database, directly integrated using the `node-sqlite-wasm` library.
   
 - **State Management**: Primarily React Context API and built-in React hooks (`useState`, `useReducer`).
   
@@ -64,15 +64,15 @@ To ensure consistency and leverage the chosen stack effectively, please follow t
     
   - **Validation**: Use `zod` for schema-based validation with `react-hook-form` via `@hookform/resolvers`.
     
-5. **Database (SQLite with `sql.js`)**:
+5. **Database (SQLite with `node-sqlite-wasm`)**:
   
-  - **Integration**: Interact with the SQLite database directly using the **`sql.js` library** via the utility functions in `src/lib/database.ts`.
+  - **Integration**: Interact with the SQLite database directly using the **`node-sqlite-wasm` library** via the utility functions in `src/lib/database.ts`.
     
   - **Schema**: Database schema is defined and managed programmatically within `src/lib/database.ts` using SQL `CREATE TABLE IF NOT EXISTS` statements. All table additions or alterations should be made by modifying this file.
     
-  - **Persistence**: Any changes to the database (inserts, updates, deletes) are performed in memory and then **must be explicitly saved to the `dev.db` file by calling `saveDb()`** from `src/lib/database.ts` after the operation.
+  - **Persistence**: Any changes to the database (inserts, updates, deletes) are performed and **automatically persisted to the `dev.db` file** by `node-sqlite-wasm`. There is no need to manually call a `saveDb()` function.
     
-  - **Initialization**: The initial database file (`dev.db`) and its base schema are automatically created when the application first starts. The `sql-wasm.wasm` file is loaded directly from the file system (`public/sql-wasm.wasm`) during initialization, ensuring robust server-side operation.
+  - **Initialization**: The initial database file (`dev.db`) and its base schema are automatically created when the application first starts.
     
   - **Database File**: The SQLite database file (`dev.db` by default) is expected to reside in the `/app/data/` directory within the Docker container for persistence via volume mapping.
     

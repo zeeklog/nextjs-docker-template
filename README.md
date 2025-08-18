@@ -1,6 +1,6 @@
 # Dyad Next.js Docker Template
 
-This template provides a robust boilerplate for building and deploying Next.js applications fully containerized with Docker, leveraging GitHub Container Registry (GHCR) for image hosting, and using SQLite with direct `sqlite3` integration as the backend database. It also includes configuration for Next.js API proxying to handle external API integrations and CORS issues seamlessly.
+This template provides a robust boilerplate for building and deploying Next.js applications fully containerized with Docker, leveraging GitHub Container Registry (GHCR) for image hosting, and using SQLite with `sql.js` as the backend database. It also includes configuration for Next.js API proxying to handle external API integrations and CORS issues seamlessly.
 
 ## ✨ Features
 
@@ -10,7 +10,7 @@ This template provides a robust boilerplate for building and deploying Next.js a
   
 - **GitHub Container Registry (GHCR)**: Automate your Docker image builds and push them to GHCR using GitHub Actions, providing a secure and integrated package registry.
   
-- **SQLite**: A lightweight, file-based database ideal for local development and smaller-scale applications, integrated directly into your Docker container using the `sqlite3` driver.
+- **SQLite with `sql.js`**: A lightweight, file-based database that runs entirely in JavaScript (compiled to WebAssembly), integrated directly into your Docker container. This eliminates native dependency issues.
   
 - **Next.js API Proxying (Rewrites)**: Built-in configuration to proxy requests to external APIs from your Next.js backend, helping to bypass client-side CORS restrictions.
   
@@ -60,9 +60,9 @@ Now, open the newly created `.env` file and configure your settings:
 - `EXTERNAL_API_URL_SERVICE1`, `EXTERNAL_API_URL_SERVICE2`, `WEATHER_API_URL`: These environment variables are used for external API proxying. **Set these to the actual base URLs of the external APIs you intend to proxy.** If a variable is left blank or omitted, the corresponding proxy rule will not be active.
   
 
-## 💾 Database Setup (SQLite)
+## 💾 Database Setup (SQLite with `sql.js`)
 
-This template uses **SQLite** for its database, managed directly with the `sqlite3` Node.js library. The initial database file (`dev.db`) and its base schema are automatically created when the application first starts.
+This template uses **SQLite** for its database, managed by the **`sql.js`** library. The initial database file (`dev.db`) and its base schema are automatically created when the application first starts.
 
 1. **Install Dependencies**:
   
@@ -70,8 +70,11 @@ This template uses **SQLite** for its database, managed directly with the `sqlit
   npm install # or yarn install
   ```
   
-2. **Schema Definition**:
-  The database schema (e.g., the `Example` table) is defined and initialized within `src/lib/database.ts` using `CREATE TABLE IF NOT EXISTS` statements. If you need to add new tables or modify existing ones, you will update this file directly.
+2. **`sql-wasm.wasm` File**:
+  The `sql.js` library requires a WebAssembly file named `sql-wasm.wasm`. This file is already included in the `public/` directory of this template, ensuring it's available for your application.
+  
+3. **Schema Definition & Persistence**:
+  The database schema (e.g., the `Example` table) is defined and initialized within `src/lib/database.ts` using SQL `CREATE TABLE IF NOT EXISTS` statements. Any changes to the database (inserts, updates, deletes) are performed in memory and then explicitly saved to the `dev.db` file by calling `saveDb()` from `src/lib/database.ts` after the operation.
   
 
 ## 🐳 Local Development with Docker Compose
@@ -159,7 +162,7 @@ This template is designed for easy deployment to Dyad. The `dyad.yaml` file spec
 
 Feel free to customize this template to fit your specific needs:
 
-- **Database Schema**: Modify `src/lib/database.ts` to add or alter tables using SQL `CREATE TABLE IF NOT EXISTS` or other DDL statements.
+- **Database Schema**: Modify `src/lib/database.ts` to add or alter tables using SQL `CREATE TABLE IF NOT EXISTS` or other DDL statements. Remember to call `saveDb()` after any write operations to persist changes.
   
 - **Next.js API Routes**: Extend the `pages/api/examples.ts` or create new API routes to interact with your SQLite database and external services.
   
@@ -174,4 +177,4 @@ Feel free to customize this template to fit your specific needs:
 
 ## ❓ Questions or Issues
 
-If you have questions or encounter issues, please refer to the documentation for Next.js, Docker, `sqlite3`, GitHub Actions, and Dyad. If you believe there's an issue with the template itself, consider opening an issue in the template repository.
+If you have questions or encounter issues, please refer to the documentation for Next.js, Docker, `sql.js`, GitHub Actions, and Dyad. If you believe there's an issue with the template itself, consider opening an issue in the template repository.

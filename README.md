@@ -43,7 +43,8 @@ Before you begin, ensure you have the following installed:
 2. **Clone Your New Repository**:
   
   ```
-  git clone https://github.com/your-username/your-new-repo-name.gitcd your-new-repo-name
+  git clone https://github.com/your-username/your-new-repo-name.git
+  cd your-new-repo-name
   ```
   
 
@@ -59,7 +60,7 @@ Now, open the newly created `.env` file and configure your settings:
 
 - `DATABASE_URL`: Set this to `file:/app/data/dev.db` for the Docker Compose setup to persist your SQLite database in a mounted volume.
   
-- `EXTERNAL_API_URL_SERVICE1`, `EXTERNAL_API_URL_SERVICE2`, `WEATHER_API_URL`: **Crucially, replace the placeholder URLs** with the actual base URLs of the external APIs you intend to proxy via your Next.js backend. Uncomment these lines.
+- `EXTERNAL_API_URL_SERVICE1`, `EXTERNAL_API_URL_SERVICE2`, `WEATHER_API_URL`: These environment variables are used for external API proxying. **Set these to the actual base URLs of the external APIs you intend to proxy.** If a variable is left blank or omitted, the corresponding proxy rule will not be active.
   
 
 ## 💾 Database Setup (SQLite & Prisma)
@@ -72,21 +73,35 @@ This template comes pre-configured with Prisma to manage your SQLite database.
   npm install # or yarn install
   ```
   
-2. **Define Your Database Schema**:
-  The `prisma/schema.prisma` file defines your database models. An `Example` model is provided to get you started. Modify this file to define your application's data structure.
+2. Define Your Database Schema:
+  
+  The prisma/schema.prisma file defines your database models. An Example model is provided to get you started. Modify this file to define your application's data structure.
   
   ```
-  // prisma/schema.prismadatasource db {  provider = "sqlite"  url      = env("DATABASE_URL")}model Example {  id        Int      @id @default(autoincrement())  name      String  createdAt DateTime @default(now())}// Add your own models here!
+  // prisma/schema.prisma
+  datasource db {
+   provider = "sqlite"
+   url      = env("DATABASE_URL")
+  }
+  
+  model Example {
+   id        Int      @id @default(autoincrement())
+   name      String
+   createdAt DateTime @default(now())
+  }
+  // Add your own models here!
   ```
   
-3. **Generate Prisma Client**:
+3. Generate Prisma Client:
+  
   This command generates the Prisma client based on your schema, allowing your Next.js application to interact with your database.
   
   ```
   npm run prisma:generate # or yarn prisma:generate
   ```
   
-4. **Run Database Migrations**:
+4. Run Database Migrations:
+  
   This command applies your schema changes to the SQLite database, creating or updating tables.
   
   ```
@@ -100,14 +115,16 @@ This template comes pre-configured with Prisma to manage your SQLite database.
 
 This template includes a `docker-compose.yml` file to quickly spin up your application in a Dockerized environment locally.
 
-1. **Build Your Docker Image Locally (Optional but good for testing)**:
-  While GitHub Actions will build your image for GHCR, you can build it locally to ensure your `Dockerfile` works as expected:
+1. Build Your Docker Image Locally (Optional but good for testing):
+  
+  While GitHub Actions will build your image for GHCR, you can build it locally to ensure your Dockerfile works as expected:
   
   ```
   docker build -t your-app-name:local .
   ```
   
-2. **Run with Docker Compose**:
+2. Run with Docker Compose:
+  
   Navigate to the root of your project and run:
   
   ```
@@ -124,10 +141,18 @@ This template includes a `docker-compose.yml` file to quickly spin up your appli
     
   - Creates a Docker volume (`dyad_db_data`) to persist your SQLite database file (`dev.db`), ensuring your data isn't lost when the container is stopped or removed.
     
-3. **Access Your Application**:
-  Once the containers are running, open your web browser and navigate to: `http://localhost:3000`
+3. Access Your Application:
   
-4. **Stop the Application**:
+  Once the containers are running, open your web browser and navigate to:
+  
+  http://localhost:3000
+  
+4. Test API Endpoints:
+  
+  The template includes a sample API endpoint at /api/examples that interacts with the SQLite database. If you've configured EXTERNAL_API_URL_SERVICE1, you can try to test a proxied endpoint like /api/service1/posts (assuming the service you configured has a /posts endpoint).
+  
+5. Stop the Application:
+  
   To stop and remove the containers and the associated volume (if you want to reset the database), run:
   
   ```
@@ -156,11 +181,11 @@ This template is configured to automatically build and push your Docker image to
 
 The `next.config.ts` file is configured to allow proxying requests from your Next.js application to external APIs. This is particularly useful for bypassing Cross-Origin Resource Sharing (CORS) issues when making API calls from the browser.
 
-- **Configuration**: The `async rewrites()` function in `next.config.ts` uses environment variables (e.g., `EXTERNAL_API_URL_SERVICE1`) to define the target external APIs.
+- **Conditional Configuration**: The `async rewrites()` function in `next.config.ts` will **only create a proxy rule if the corresponding environment variable (e.g., `EXTERNAL_API_URL_SERVICE1`) is explicitly set and not blank.** This means your application will start without errors even if you don't need all proxy rules immediately.
   
-- **Usage Example**: If you have `EXTERNAL_API_URL_SERVICE1=https://api.example.com`, a request from your frontend to `/api/service1/data` will be proxied by your Next.js backend to `https://api.example.com/data`.
+- **Usage Example**: If you set `EXTERNAL_API_URL_SERVICE1=https://api.example.com`, a request from your frontend to `/api/service1/data` will be proxied by your Next.js backend to `https://api.example.com/data`. If `EXTERNAL_API_URL_SERVICE1` is blank, that rule will simply not be active.
   
-- **Customization**: Add more rewrite rules to `next.config.ts` and corresponding environment variables in your `.env` file for each external API you need to proxy.
+- **Customization**: To integrate your specific external APIs, **set the corresponding environment variables in your `.env` file**. You can also add more rewrite rules to `next.config.ts` for additional APIs.
   
 
 ## 🚀 Deployment to Dyad

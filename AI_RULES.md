@@ -22,7 +22,7 @@ The application is built using the following core technologies:
   
 - **Forms**: React Hook Form for managing form state and validation, typically with Zod for schema validation.
   
-- **Database**: SQLite - A lightweight, file-based database, directly integrated using the `sqlite3` Node.js library.
+- **Database**: SQLite - A lightweight, file-based database, directly integrated using the `sql.js` library.
   
 - **State Management**: Primarily React Context API and built-in React hooks (`useState`, `useReducer`).
   
@@ -64,11 +64,13 @@ To ensure consistency and leverage the chosen stack effectively, please follow t
     
   - **Validation**: Use `zod` for schema-based validation with `react-hook-form` via `@hookform/resolvers`.
     
-5. **Database (SQLite)**:
+5. **Database (SQLite with `sql.js`)**:
   
-  - **Integration**: Interact with the SQLite database directly using the **`sqlite3` Node.js library** via the utility functions in `src/lib/database.ts`.
+  - **Integration**: Interact with the SQLite database directly using the **`sql.js` library** via the utility functions in `src/lib/database.ts`.
     
-  - **Schema**: Database schema is defined and managed programmatically within `src/lib/database.ts` using `CREATE TABLE IF NOT EXISTS` statements. All table additions or alterations should be made by modifying this file.
+  - **Schema**: Database schema is defined and managed programmatically within `src/lib/database.ts` using SQL `CREATE TABLE IF NOT EXISTS` statements. All table additions or alterations should be made by modifying this file.
+    
+  - **Persistence**: Any changes to the database (inserts, updates, deletes) are performed in memory and then **must be explicitly saved to the `dev.db` file by calling `saveDb()`** from `src/lib/database.ts` after the operation.
     
   - **Initialization**: The initial database file (`dev.db`) and its base schema are automatically created when the application first starts, so no manual migration commands are required for initial setup.
     

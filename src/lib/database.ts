@@ -1,5 +1,4 @@
-import { Low } from 'lowdb';
-import { JSONFile } from '@foreast/file-async'; // Correct import for JSONFile
+import { Low, JSONFile } from 'lowdb'; // Import JSONFile directly from lowdb
 import path from 'path';
 import fs from 'fs'; // Used only for checking directory existence synchronously for initial setup
 
@@ -40,7 +39,7 @@ export async function getDb(): Promise<Low<DbSchema>> {
       fs.mkdirSync(dir, { recursive: true });
     }
 
-    // Configure the adapter for JSON file persistence
+    // Configure the adapter for JSON file persistence using lowdb's JSONFile
     const adapter = new JSONFile<DbSchema>(DB_FULL_PATH);
     dbInstance = new Low<DbSchema>(adapter);
 

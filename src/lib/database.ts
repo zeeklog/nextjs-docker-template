@@ -1,5 +1,4 @@
-import { Low } from 'lowdb';
-import { JSONFile } from 'lowdb/node'; // Corrected import path for JSONFile
+import { Low, JSONFile } from 'lowdb';
 import path from 'path';
 import fs from 'fs'; // Used only for checking directory existence synchronously for initial setup
 
@@ -42,19 +41,23 @@ export async function getDb(): Promise<Low<DbSchema>> {
 
     // Configure the adapter for JSON file persistence using lowdb's JSONFile
     const adapter = new JSONFile<DbSchema>(DB_FULL_PATH);
-    dbInstance = new Low<DbSchema>(adapter);
+    // CRITICAL FIX: Pass default data directly to the Low constructor
+    dbInstance = new Low<DbSchema>(adapter, { examples: [] }); // Provide initial structure
 
-    // Read data from disk. If file doesn't exist, data will be null.
+    // Read data from disk. If file doesn't exist or is empty, it will use the default data.
     await dbInstance.read();
 
-    // Set default data if the database file was empty or didn't exist
-    if (dbInstance.data === null || Object.keys(dbInstance.data).length === 0) {
-      dbInstance.data = { examples: [] }; // Initialize with an empty examples array
-      await dbInstance.write(); // Write the default data to disk
-      console.log(`Initialized new database at: ${DB_FULL_PATH}`);
-    } else {
-      console.log(`Loaded existing database from: ${DB_FULL_PATH}`);
-    }
+    // Removed the old default data check here, as it's handled by the constructor now.
+    // However, if you want to ensure the file is written to disk *immediately* after
+    // a fresh initialization by the constructor (even if it's empty), you can force a write:
+    // if (!fs.existsSync(DB_FULL_PATH) || dbInstance.data === null || Object.keys(dbInstance.data).length === 0) {
+    //   await dbInstance.write();
+    //   console.log(`Initialized new database at: ${DB_FULL_PATH}`);
+    // } else {
+    //   console.log(`Loaded existing database from: ${DB_FULL_PATH}`);
+    // }
+    console.log(`Database initialized/loaded from: ${DB_FULL_PATH}`);
+
 
     return dbInstance;
   } catch (error) {

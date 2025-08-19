@@ -57,8 +57,9 @@ Now, open the newly created `.env` file and configure your settings:
 
 - `DATABASE_DIR`: Optional. If set, this defines the directory where your `db.json` file will be stored (default is `./data`).
   
-- `EXTERNAL_API_URL_SERVICE1`, `EXTERNAL_API_URL_SERVICE2`, `WEATHER_API_URL`: These environment variables are used for external API proxying. **Set these to the actual base URLs of the external APIs you intend to proxy.** If a variable is left blank or omitted, the corresponding proxy rule will not be active.
+- `EXTERNAL_API_URL_SERVICE1`, `EXTERNAL_API_URL_SERVICE2`, `WEATHER_API_URL`: These environment variables are used for generic external API proxying. **Set these to the actual base URLs of the external APIs you intend to proxy.** If a variable is left blank or omitted, the corresponding proxy rule will not be active.
   
+  - **Note to AI/Users**: For any *new* external APIs you wish to integrate beyond these examples, you will need to **add a new environment variable** (e.g., `MY_NEW_API_URL`) to your `.env` file and configure a corresponding rewrite rule in `next.config.ts`.
 
 ## 💾 Database Setup (JSON Database with `lowdb`)
 
@@ -71,8 +72,9 @@ This template uses a **JSON file (`db.json`)** for its database, managed by the 
   ```
   
 2. **Schema Definition & Persistence**:
-  The database structure (e.g., the `examples` array) is initialized within `src/lib/database.ts`. All changes to the database (adding, updating, deleting data) are automatically persisted to the `db.json` file by `lowdb`'s adapter whenever you call `db.write()` after modifying `db.data`.
+  The database structure (e.g., the `examples` array) is defined and initialized within `src/lib/database.ts`. All changes to the database (adding, updating, deleting data) are automatically persisted to the `db.json` file by `lowdb`'s adapter whenever you call `db.write()` after modifying `db.data`.
   
+  - **Note to AI/Users**: If you need to store new types of data, you should **update the `DbSchema` interface** in `src/lib/database.ts` and ensure the default data in the `Low` constructor is initialized with empty arrays/objects for new collections.
 
 ## 🐳 Local Development with Docker Compose
 
@@ -106,7 +108,7 @@ This template includes a `docker-compose.yml` file to quickly spin up your appli
   Once the containers are running, open your web browser and navigate to: `http://localhost:3000`
   
 4. **Test API Endpoints**:
-  The template includes a sample API endpoint at `/api/examples` that interacts with the JSON database. You can send GET and POST requests to this endpoint to test database functionality. If you've configured `EXTERNAL_API_URL_SERVICE1`, you can also try to test a proxied endpoint like `/api/service1/posts` (assuming the service you configured has a `/posts` endpoint).
+  The template includes a sample API endpoint at `/api/examples` that interacts with the JSON database. You can send GET and POST requests to this endpoint to test database functionality. If you've configured `EXTERNAL_API_URL_SERVICE1`, you can also try to test proxied endpoints like `/api/service1/posts` (assuming the service you configured has those endpoints).
   
 5. **Stop the Application**:
   To stop and remove the containers and the associated volume (if you want to reset the database), run:
@@ -143,6 +145,7 @@ The `next.config.ts` file is configured to allow proxying requests from your Nex
   
 - **Customization**: To integrate your specific external APIs, **set the corresponding environment variables in your `.env` file**. You can also add more rewrite rules to `next.config.ts` for additional APIs.
   
+  - **Note to AI/Users**: When integrating with a *new* external API, the AI should **add a new rewrite rule** to `next.config.ts` for that specific API and guide the user to set the corresponding environment variable.
 
 ## 🚀 Deployment to Dyad
 

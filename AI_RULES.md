@@ -95,8 +95,16 @@ To ensure consistency and leverage the chosen stack effectively, please follow t
     
   - **External API Proxying**: When interacting with external APIs that have CORS issues, route requests through Next.js API Rewrites as configured in `next.config.ts` (e.g., `/api/service1/*`). Avoid direct client-side calls to external APIs without proxying unless explicitly necessary.
     
-  - **Adding New Proxies**: **When a user requests integration with a new external API, the AI MUST add a new environment variable (e.g., `THIRD_PARTY_API_URL`) to the `.env` file (if not already present) and a corresponding new rewrite rule in `next.config.ts` for that specific API.** Server-side API routes should then use this new environment variable to directly fetch from the external API, while client-side components can use the proxied path.
+  - **Adding New Proxies & Environment Variables**: **When a user requests integration with a new external API, the AI MUST:**
     
+    1. **Add a new environment variable** (e.g., `THIRD_PARTY_API_URL`) to the `.env` file (if not already present).
+      
+    2. **Add a corresponding new rewrite rule in `next.config.ts`** for that specific API.
+      
+    3. **Crucially, add the new environment variable (commented out, as an example) to the `environment` section of the `web` service in `docker-compose.yml`**. This ensures the Docker Compose setup is ready for local development with the new feature.
+      
+    4. Server-side API routes should then use this new environment variable to directly fetch from the external API, while client-side components can use the proxied path.
+      
   - **Common Pitfall: Server-Side External API Calls**: **The AI MUST NOT use `process.env.NEXT_PUBLIC_APP_URL` or the application's own `/api` proxy path (e.g., `/api/3rd_party/models`) for server-side fetches to** ***external*** **APIs.** Server-side routes run in the Node.js environment and should directly access external services using dedicated server-side environment variables (e.g., `process.env.THIRD_PARTY_API_URL`). The `/api` proxy paths are primarily for client-side requests to bypass CORS.
     
 9. **Animations**:

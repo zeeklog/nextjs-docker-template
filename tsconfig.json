@@ -1,10 +1,11 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
+    "target": "es5",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
+    "forceWithShading": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
@@ -18,8 +19,10 @@
         "name": "next"
       }
     ],
+    // Essential for absolute imports from 'src'
+    "baseUrl": ".", // This tells TypeScript to resolve modules relative to the project root
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"] // This maps '@/anything' to './src/anything'
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

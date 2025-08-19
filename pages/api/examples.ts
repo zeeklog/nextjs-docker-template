@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getDb } from '../../lib/database';
+import { getDb } from 'lib/database'; // Changed to absolute import
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {

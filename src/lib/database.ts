@@ -1,10 +1,12 @@
-import { Low, JSONFile } from 'lowdb';
+import { Low } from 'lowdb';
+import { JSONFile } from 'lowdb/node'; // Corrected import path for JSONFile
 import path from 'path';
 import fs from 'fs'; // Used only for checking directory existence synchronously for initial setup
 
 // Define the shape of your database
 interface DbSchema {
   examples: { id: number; name: string; createdAt: string }[];
+  // Removed 'pollinationModels' as it's specific to a sample app, not the generic template.
 }
 
 // Define the path for the JSON database file
@@ -41,23 +43,13 @@ export async function getDb(): Promise<Low<DbSchema>> {
 
     // Configure the adapter for JSON file persistence using lowdb's JSONFile
     const adapter = new JSONFile<DbSchema>(DB_FULL_PATH);
-    // CRITICAL FIX: Pass default data directly to the Low constructor
+    // CRITICAL FIX: Pass default data directly to the Low constructor, with only generic 'examples'
     dbInstance = new Low<DbSchema>(adapter, { examples: [] }); // Provide initial structure
 
     // Read data from disk. If file doesn't exist or is empty, it will use the default data.
     await dbInstance.read();
 
-    // Removed the old default data check here, as it's handled by the constructor now.
-    // However, if you want to ensure the file is written to disk *immediately* after
-    // a fresh initialization by the constructor (even if it's empty), you can force a write:
-    // if (!fs.existsSync(DB_FULL_PATH) || dbInstance.data === null || Object.keys(dbInstance.data).length === 0) {
-    //   await dbInstance.write();
-    //   console.log(`Initialized new database at: ${DB_FULL_PATH}`);
-    // } else {
-    //   console.log(`Loaded existing database from: ${DB_FULL_PATH}`);
-    // }
     console.log(`Database initialized/loaded from: ${DB_FULL_PATH}`);
-
 
     return dbInstance;
   } catch (error) {

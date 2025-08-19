@@ -1,6 +1,6 @@
-# Dyad Next.js Docker Template
+# yad Next.js Docker Template
 
-This template provides a robust boilerplate for building and deploying Next.js applications fully containerized with Docker, leveraging GitHub Container Registry (GHCR) for image hosting, and using SQLite with `node-sqlite-wasm` as the backend database. It also includes configuration for Next.js API proxying to handle external API integrations and CORS issues seamlessly.
+This template provides a robust boilerplate for building and deploying Next.js applications fully containerized with Docker, leveraging GitHub Container Registry (GHCR) for image hosting, and using SQLite with `better-sqlite3` as the backend database. It also includes configuration for Next.js API proxying to handle external API integrations and CORS issues seamlessly.
 
 ## ✨ Features
 
@@ -10,7 +10,7 @@ This template provides a robust boilerplate for building and deploying Next.js a
   
 - **GitHub Container Registry (GHCR)**: Automate your Docker image builds and push them to GHCR using GitHub Actions, providing a secure and integrated package registry.
   
-- **SQLite with `node-sqlite-wasm`**: A lightweight, file-based database that runs entirely in JavaScript (WebAssembly), designed specifically for Node.js environments. This library automatically handles database persistence to disk, eliminating native dependency issues and manual save calls.
+- **SQLite with `better-sqlite3`**: A highly performant and reliable synchronous SQLite library for Node.js. This library automatically handles database persistence to disk, designed for robust server-side operations.
   
 - **Next.js API Proxying (Rewrites)**: Built-in configuration to proxy requests to external APIs from your Next.js backend, helping to bypass client-side CORS restrictions.
   
@@ -60,9 +60,9 @@ Now, open the newly created `.env` file and configure your settings:
 - `EXTERNAL_API_URL_SERVICE1`, `EXTERNAL_API_URL_SERVICE2`, `WEATHER_API_URL`: These environment variables are used for external API proxying. **Set these to the actual base URLs of the external APIs you intend to proxy.** If a variable is left blank or omitted, the corresponding proxy rule will not be active.
   
 
-## 💾 Database Setup (SQLite with `node-sqlite-wasm`)
+## 💾 Database Setup (SQLite with `better-sqlite3`)
 
-This template uses **SQLite** for its database, managed by the **`node-sqlite-wasm`** library. The initial database file (`dev.db`) and its base schema are automatically created when the application first starts.
+This template uses **SQLite** for its database, managed by the **`better-sqlite3`** library. The initial database file (`dev.db`) and its base schema are automatically created when the application first starts.
 
 1. **Install Dependencies**:
   
@@ -71,7 +71,7 @@ This template uses **SQLite** for its database, managed by the **`node-sqlite-wa
   ```
   
 2. **Schema Definition & Persistence**:
-  The database schema (e.g., the `Example` table) is defined and initialized within `src/lib/database.ts` using SQL `CREATE TABLE IF NOT EXISTS` statements. All changes to the database (inserts, updates, deletes) are automatically persisted to the `dev.db` file by `node-sqlite-wasm` when the operations complete. There is no need to manually call a `saveDb()` function.
+  The database schema (e.g., the `Example` table) is defined and initialized within `src/lib/database.ts` using SQL `CREATE TABLE IF NOT EXISTS` statements. All changes to the database (inserts, updates, deletes) are automatically persisted to the `dev.db` file by `better-sqlite3`. There is no need for manual save calls.
   
 
 ## 🐳 Local Development with Docker Compose
@@ -174,4 +174,4 @@ Feel free to customize this template to fit your specific needs:
 
 ## ❓ Questions or Issues
 
-If you have questions or encounter issues, please refer to the documentation for Next.js, Docker, `node-sqlite-wasm`, GitHub Actions, and Dyad. If you believe there's an issue with the template itself, consider opening an issue in the template repository.
+If you have questions or encounter issues, please refer to the documentation for Next.js, Docker, `better-sqlite3`, GitHub Actions, and Dyad. If you believe there's an issue with the template itself, consider opening an issue in the template repository.

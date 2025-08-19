@@ -105,7 +105,7 @@ To ensure consistency and leverage the chosen stack effectively, please follow t
       
     4. Server-side API routes should then use this new environment variable to directly fetch from the external API, while client-side components can use the proxied path.
       
-  - **Common Pitfall: Server-Side External API Calls**: **The AI MUST NOT use `process.env.NEXT_PUBLIC_APP_URL` or the application's own `/api` proxy path (e.g., `/api/3rd_party/models`) for server-side fetches to** ***external*** **APIs.** Server-side routes run in the Node.js environment and should directly access external services using dedicated server-side environment variables (e.g., `process.env.THIRD_PARTY_API_URL`). The `/api` proxy paths are primarily for client-side requests to bypass CORS.
+  - **🚩 CRITICAL PITFALL: Server-Side External API Calls 🚩**: **The AI MUST ABSOLUTELY NOT use `process.env.NEXT_PUBLIC_APP_URL` or the application's own `/api` proxy path (e.g., `/api/3rd_party/data`) for server-side fetches to** ***external*** **APIs.** Server-side routes run in the Node.js environment and **MUST directly access external services** using their dedicated server-side environment variables (e.g., `process.env.THIRD_PARTY_API_URL`). The `/api` proxy paths are specifically designed and intended only for client-side requests to bypass CORS.
     
 9. **Animations**:
   

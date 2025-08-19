@@ -32,8 +32,7 @@ COPY --from=builder /app/public ./public
 # If you have static assets in a separate 'static' folder, copy them too
 # COPY --from=builder /app/static ./static
 
-# IMPORTANT: Removed `apk add --no-cache sqlite sqlite-libs`
-# as sql.js is a pure JavaScript solution and does not require native SQLite libraries.
+# No specific `apk add` for SQLite needed for better-sqlite3 as it handles its own bindings
 
 # Expose the port Next.js will run on
 EXPOSE 3000

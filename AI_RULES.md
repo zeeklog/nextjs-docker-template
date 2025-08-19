@@ -22,7 +22,7 @@ The application is built using the following core technologies:
   
 - **Forms**: React Hook Form for managing form state and validation, typically with Zod for schema validation.
   
-- **Database**: SQLite - A lightweight, file-based database, directly integrated using the `node-sqlite-wasm` library.
+- **Database**: SQLite - A lightweight, file-based database, directly integrated using the `better-sqlite3` library.
   
 - **State Management**: Primarily React Context API and built-in React hooks (`useState`, `useReducer`).
   
@@ -64,13 +64,13 @@ To ensure consistency and leverage the chosen stack effectively, please follow t
     
   - **Validation**: Use `zod` for schema-based validation with `react-hook-form` via `@hookform/resolvers`.
     
-5. **Database (SQLite with `node-sqlite-wasm`)**:
+5. **Database (SQLite with `better-sqlite3`)**:
   
-  - **Integration**: Interact with the SQLite database directly using the **`node-sqlite-wasm` library** via the utility functions in `src/lib/database.ts`.
+  - **Integration**: Interact with the SQLite database directly using the **`better-sqlite3` library** via the utility functions in `src/lib/database.ts`.
     
   - **Schema**: Database schema is defined and managed programmatically within `src/lib/database.ts` using SQL `CREATE TABLE IF NOT EXISTS` statements. All table additions or alterations should be made by modifying this file.
     
-  - **Persistence**: Any changes to the database (inserts, updates, deletes) are performed and **automatically persisted to the `dev.db` file** by `node-sqlite-wasm`. There is no need to manually call a `saveDb()` function.
+  - **Persistence**: Any changes to the database (inserts, updates, deletes) are performed and **automatically persisted to the `dev.db` file** by `better-sqlite3`. There is no need to manually call a `saveDb()` function.
     
   - **Initialization**: The initial database file (`dev.db`) and its base schema are automatically created when the application first starts.
     

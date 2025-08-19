@@ -121,6 +121,6 @@ To ensure consistency and leverage the chosen stack effectively, please follow t
     
 15. **Environment Variables for Dyad Testing**:
   
-  - For testing and development within the Dyad environment, users can set environment variables directly through the Dyad UI. These variables will be available to the running Next.js application, including those used for API proxying (e.g., `EXTERNAL_API_URL_SERVICE1`) and database paths (`DATABASE_DIR`). This allows for quick iteration before pushing to a Docker-based deployment.
+  - For testing and development within the Dyad environment, users can set environment variables directly through the Dyad UI. **It is critical to instruct the user to set any necessary environment variables (e.g., for external API URLs, database directories) within the Dyad UI's environment variable settings.** These variables will then be available to the running Next.js application, allowing for quick iteration before pushing to a Docker-based deployment.
 
 By following these guidelines, we can build a more robust, maintainable, and consistent application within the Dockerized Next.js ecosystem.

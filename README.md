@@ -1,6 +1,6 @@
-# yad Next.js Docker Template
+# Dyad Next.js Docker Template
 
-This template provides a robust boilerplate for building and deploying Next.js applications fully containerized with Docker, leveraging GitHub Container Registry (GHCR) for image hosting, and using SQLite with `better-sqlite3` as the backend database. It also includes configuration for Next.js API proxying to handle external API integrations and CORS issues seamlessly.
+This template provides a robust boilerplate for building and deploying Next.js applications fully containerized with Docker, leveraging GitHub Container Registry (GHCR) for image hosting, and using a **pure JavaScript JSON database (`lowdb`)** as the backend. It also includes configuration for Next.js API proxying to handle external API integrations and CORS issues seamlessly.
 
 ## ✨ Features
 
@@ -10,7 +10,7 @@ This template provides a robust boilerplate for building and deploying Next.js a
   
 - **GitHub Container Registry (GHCR)**: Automate your Docker image builds and push them to GHCR using GitHub Actions, providing a secure and integrated package registry.
   
-- **SQLite with `better-sqlite3`**: A highly performant and reliable synchronous SQLite library for Node.js. This library automatically handles database persistence to disk, designed for robust server-side operations.
+- **JSON Database (`lowdb`)**: A lightweight, file-based JSON database that runs entirely in JavaScript. This simplifies database setup by eliminating native dependency issues and manual migration commands.
   
 - **Next.js API Proxying (Rewrites)**: Built-in configuration to proxy requests to external APIs from your Next.js backend, helping to bypass client-side CORS restrictions.
   
@@ -55,14 +55,14 @@ cp .env.example .env
 
 Now, open the newly created `.env` file and configure your settings:
 
-- `DATABASE_URL`: Set this to `file:./data/dev.db` for the Docker Compose setup to persist your SQLite database in a mounted volume.
+- `DATABASE_DIR`: Optional. If set, this defines the directory where your `db.json` file will be stored (default is `./data`).
   
 - `EXTERNAL_API_URL_SERVICE1`, `EXTERNAL_API_URL_SERVICE2`, `WEATHER_API_URL`: These environment variables are used for external API proxying. **Set these to the actual base URLs of the external APIs you intend to proxy.** If a variable is left blank or omitted, the corresponding proxy rule will not be active.
   
 
-## 💾 Database Setup (SQLite with `better-sqlite3`)
+## 💾 Database Setup (JSON Database with `lowdb`)
 
-This template uses **SQLite** for its database, managed by the **`better-sqlite3`** library. The initial database file (`dev.db`) and its base schema are automatically created when the application first starts.
+This template uses a **JSON file (`db.json`)** for its database, managed by the **`lowdb`** library. The `db.json` file and its initial structure are automatically created with default empty data (`{ examples: [] }`) when the application first starts.
 
 1. **Install Dependencies**:
   
@@ -71,7 +71,7 @@ This template uses **SQLite** for its database, managed by the **`better-sqlite3
   ```
   
 2. **Schema Definition & Persistence**:
-  The database schema (e.g., the `Example` table) is defined and initialized within `src/lib/database.ts` using SQL `CREATE TABLE IF NOT EXISTS` statements. All changes to the database (inserts, updates, deletes) are automatically persisted to the `dev.db` file by `better-sqlite3`. There is no need for manual save calls.
+  The database structure (e.g., the `examples` array) is initialized within `src/lib/database.ts`. All changes to the database (adding, updating, deleting data) are automatically persisted to the `db.json` file by `lowdb`'s adapter whenever you call `db.write()` after modifying `db.data`.
   
 
 ## 🐳 Local Development with Docker Compose
@@ -100,13 +100,13 @@ This template includes a `docker-compose.yml` file to quickly spin up your appli
     
   - Maps port `3000` from the container to `3000` on your host machine. You can change `3000:3000` in `docker-compose.yml` to, for example, `8080:3000` to access it on port 8080.
     
-  - Creates a Docker volume (`dyad_db_data`) to persist your SQLite database file (`dev.db`), ensuring your data isn't lost when the container is stopped or removed.
+  - Creates a Docker volume (`dyad_db_data`) to persist your JSON database file (`db.json`), ensuring your data isn't lost when the container is stopped or removed.
     
 3. **Access Your Application**:
   Once the containers are running, open your web browser and navigate to: `http://localhost:3000`
   
 4. **Test API Endpoints**:
-  The template includes a sample API endpoint at `/api/examples` that interacts with the SQLite database. You can send GET and POST requests to this endpoint to test database functionality. If you've configured `EXTERNAL_API_URL_SERVICE1`, you can also try to test a proxied endpoint like `/api/service1/posts` (assuming the service you configured has a `/posts` endpoint).
+  The template includes a sample API endpoint at `/api/examples` that interacts with the JSON database. You can send GET and POST requests to this endpoint to test database functionality. If you've configured `EXTERNAL_API_URL_SERVICE1`, you can also try to test a proxied endpoint like `/api/service1/posts` (assuming the service you configured has a `/posts` endpoint).
   
 5. **Stop the Application**:
   To stop and remove the containers and the associated volume (if you want to reset the database), run:
@@ -159,9 +159,9 @@ This template is designed for easy deployment to Dyad. The `dyad.yaml` file spec
 
 Feel free to customize this template to fit your specific needs:
 
-- **Database Schema**: Modify `src/lib/database.ts` to add or alter tables using SQL `CREATE TABLE IF NOT EXISTS` or other DDL statements.
+- **Database Schema**: Modify `src/lib/database.ts` and the `DbSchema` interface to define the structure of your JSON data. Remember to call `db.write()` after any data modifications.
   
-- **Next.js API Routes**: Extend the `pages/api/examples.ts` or create new API routes to interact with your SQLite database and external services.
+- **Next.js API Routes**: Extend the `pages/api/examples.ts` or create new API routes to interact with your `lowdb` database and external services.
   
 - **Frontend**: Build out your Next.js UI components.
   
@@ -174,4 +174,4 @@ Feel free to customize this template to fit your specific needs:
 
 ## ❓ Questions or Issues
 
-If you have questions or encounter issues, please refer to the documentation for Next.js, Docker, `better-sqlite3`, GitHub Actions, and Dyad. If you believe there's an issue with the template itself, consider opening an issue in the template repository.
+If you have questions or encounter issues, please refer to the documentation for Next.js, Docker, `lowdb`, GitHub Actions, and Dyad. If you believe there's an issue with the template itself, consider opening an issue in the template repository.

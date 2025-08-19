@@ -123,7 +123,7 @@ To ensure consistency and leverage the chosen stack effectively, please follow t
     
   - Strive for strong typing and leverage TypeScript's features to improve code quality and maintainability. Avoid using `any` where possible.
     
-  - **Absolute Imports**: **The AI MUST use absolute imports for modules within the `src` directory** (e.g., `import { getDb } from 'lib/database';` instead of `import { getDb } from '../../lib/database';`). This enhances module resolution robustness, especially in Docker environments, and improves code readability.
+  - **Absolute Imports**: **The AI MUST use absolute imports for modules within the `src` directory** (e.g., `import { getDb } from 'lib/database';` instead of `import { getDb } from '../../lib/database';`). Next.js automatically configures path aliases (e.g., `@/` maps to `src/`) for improved module resolution. **Therefore, imports should be structured like `import { MyComponent } from '@/components/MyComponent';` or `import { myUtility } from '@/lib/utils';`.** This enhances module resolution robustness, especially in Docker environments, and improves code readability.
     
 15. **Environment Variables for Dyad Testing**:
   

@@ -1,17 +1,17 @@
 import { Low } from 'lowdb';
-import { JSONFile } from 'lowdb/node'; // Corrected import path for JSONFile
+import { JSONFile } from 'lowdb/node'; // Correct import path for JSONFile
 import path from 'path';
 import fs from 'fs'; // Used only for checking directory existence synchronously for initial setup
 
-// Define the shape of your database
+// Define the generic shape of your database for the template.
+// The AI will extend this schema based on user's specific app requirements.
 interface DbSchema {
   examples: { id: number; name: string; createdAt: string }[];
-  // Removed 'pollinationModels' as it's specific to a sample app, not the generic template.
+  // Future: The AI will add new collections here based on user needs, e.g.,
+  // myCustomData: { id: string; value: string }[];
 }
 
 // Define the path for the JSON database file
-// It's expected to be relative to the project root, typically mounted via Docker volume.
-// We'll use a fixed name like 'db.json'
 const DB_FILE_NAME = 'db.json';
 const DB_DIR_PATH = process.env.DATABASE_DIR || './data'; // Allows configuring DB directory via env
 const DB_FULL_PATH = path.resolve(process.cwd(), DB_DIR_PATH, DB_FILE_NAME);
@@ -25,11 +25,9 @@ let dbInstance: Low<DbSchema> | null = null;
  */
 export async function getDb(): Promise<Low<DbSchema>> {
   if (dbInstance) {
-    // If the database is already initialized and read, return it.
     if (dbInstance.data) {
       return dbInstance;
     }
-    // If dbInstance exists but data hasn't been read yet, wait for it.
     await dbInstance.read();
     return dbInstance;
   }
@@ -37,16 +35,14 @@ export async function getDb(): Promise<Low<DbSchema>> {
   try {
     // Ensure the directory for the database file exists
     const dir = path.dirname(DB_FULL_PATH);
-    if (!fs.existsSync(dir)) { // Use sync version for initial dir creation
+    if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
 
-    // Configure the adapter for JSON file persistence using lowdb's JSONFile
     const adapter = new JSONFile<DbSchema>(DB_FULL_PATH);
-    // CRITICAL FIX: Pass default data directly to the Low constructor, with only generic 'examples'
-    dbInstance = new Low<DbSchema>(adapter, { examples: [] }); // Provide initial structure
+    // Provide initial generic structure for the template
+    dbInstance = new Low<DbSchema>(adapter, { examples: [] });
 
-    // Read data from disk. If file doesn't exist or is empty, it will use the default data.
     await dbInstance.read();
 
     console.log(`Database initialized/loaded from: ${DB_FULL_PATH}`);

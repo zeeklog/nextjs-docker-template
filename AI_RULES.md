@@ -68,7 +68,7 @@ To ensure consistency and leverage the chosen stack effectively, please follow t
   
   - **Integration**: Interact with the JSON database directly using the **`lowdb` library** via the utility functions in `src/lib/database.ts`.
     
-  - **Schema**: Database structure (e.g., the `examples` array) is defined and initialized within `src/lib/database.ts`. All data structures (tables/collections) should be defined within the `DbSchema` interface in `src/lib/database.ts`.
+  - **Schema Extension**: The `DbSchema` interface in `src/lib/database.ts` defines the structure of the JSON database. **When a user requests to store new types of data, the AI MUST extend this `DbSchema` interface by adding new properties (e.g., `pollinationModels: { ... }[]`) and initialize them as empty arrays/objects in the `Low` constructor's default data.**
     
   - **Persistence**: Any changes to the database (adding, updating, deleting data by modifying `db.data`) **must be explicitly persisted to the `db.json` file by calling `await db.write()`** after the modification.
     
@@ -94,6 +94,8 @@ To ensure consistency and leverage the chosen stack effectively, please follow t
   - **Server-Side (Next.js)**: Leverage Next.js Route Handlers (in `src/app/api/`) or Server Actions for server-side logic and data fetching.
     
   - **External API Proxying**: When interacting with external APIs that have CORS issues, route requests through Next.js API Rewrites as configured in `next.config.ts` (e.g., `/api/service1/*`). Avoid direct client-side calls to external APIs without proxying unless explicitly necessary.
+    
+  - **Adding New Proxies**: **When a user requests integration with a new external API, the AI MUST add a new environment variable (e.g., `POLLINATIONS_API_URL`) to the `.env` file (if not already present) and a corresponding new rewrite rule in `next.config.ts` for that specific API.** Server-side API routes should then use this new environment variable to directly fetch from the external API, while client-side components can use the proxied path.
     
 9. **Animations**:
   
@@ -121,6 +123,6 @@ To ensure consistency and leverage the chosen stack effectively, please follow t
     
 15. **Environment Variables for Dyad Testing**:
   
-  - For testing and development within the Dyad environment, users can set environment variables directly through the Dyad UI. **It is critical to instruct the user to set any necessary environment variables (e.g., for external API URLs, database directories) within the Dyad UI's environment variable settings.** These variables will then be available to the running Next.js application, allowing for quick iteration before pushing to a Docker-based deployment.
+  - For testing and development within the Dyad environment, users can set environment variables directly through the Dyad UI. **It is critical to instruct the user to set any necessary environment variables (e.g., for external API URLs like `POLLINATIONS_API_URL` or database directories like `DATABASE_DIR`) within the Dyad UI's environment variable settings.** These variables will then be available to the running Next.js application, allowing for quick iteration before pushing to a Docker-based deployment. The AI should remind the user to set these when relevant.
 
 By following these guidelines, we can build a more robust, maintainable, and consistent application within the Dockerized Next.js ecosystem.

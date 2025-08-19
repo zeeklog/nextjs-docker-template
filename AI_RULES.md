@@ -68,7 +68,7 @@ To ensure consistency and leverage the chosen stack effectively, please follow t
   
   - **Integration**: Interact with the JSON database directly using the **`lowdb` library** via the utility functions in `src/lib/database.ts`.
     
-  - **Schema Extension**: The `DbSchema` interface in `src/lib/database.ts` defines the structure of the JSON database. **When a user requests to store new types of data, the AI MUST extend this `DbSchema` interface by adding new properties (e.g., `3RD_PARTY_Models: { ... }[]`) and initialize them as empty arrays/objects in the `Low` constructor's default data.**
+  - **Schema Extension**: The `DbSchema` interface in `src/lib/database.database.ts` defines the structure of the JSON database. **When a user requests to store new types of data, the AI MUST extend this `DbSchema` interface by adding new properties (e.g., `myCustomData: { ... }[]`) and initialize them as empty arrays/objects in the `Low` constructor's default data.**
     
   - **Persistence**: Any changes to the database (adding, updating, deleting data by modifying `db.data`) **must be explicitly persisted to the `db.json` file by calling `await db.write()`** after the modification.
     
@@ -95,9 +95,9 @@ To ensure consistency and leverage the chosen stack effectively, please follow t
     
   - **External API Proxying**: When interacting with external APIs that have CORS issues, route requests through Next.js API Rewrites as configured in `next.config.ts` (e.g., `/api/service1/*`). Avoid direct client-side calls to external APIs without proxying unless explicitly necessary.
     
-  - **Adding New Proxies**: **When a user requests integration with a new external API, the AI MUST add a new environment variable (e.g., `3RD_PARTY_API_URL`) to the `.env` file (if not already present) and a corresponding new rewrite rule in `next.config.ts` for that specific API.** Server-side API routes should then use this new environment variable to directly fetch from the external API, while client-side components can use the proxied path.
+  - **Adding New Proxies**: **When a user requests integration with a new external API, the AI MUST add a new environment variable (e.g., `THIRD_PARTY_API_URL`) to the `.env` file (if not already present) and a corresponding new rewrite rule in `next.config.ts` for that specific API.** Server-side API routes should then use this new environment variable to directly fetch from the external API, while client-side components can use the proxied path.
     
-  - **Common Pitfall: Server-Side External API Calls**: **The AI MUST NOT use `process.env.NEXT_PUBLIC_APP_URL` or the application's own `/api` proxy path (e.g., `/api/3rd_party/models`) for server-side fetches to** ***external*** **APIs.** Server-side routes run in the Node.js environment and should directly access external services using dedicated server-side environment variables (e.g., `process.env.3RD_PARTY_API_URL`). The `/api` proxy paths are primarily for client-side requests to bypass CORS.
+  - **Common Pitfall: Server-Side External API Calls**: **The AI MUST NOT use `process.env.NEXT_PUBLIC_APP_URL` or the application's own `/api` proxy path (e.g., `/api/3rd_party/models`) for server-side fetches to** ***external*** **APIs.** Server-side routes run in the Node.js environment and should directly access external services using dedicated server-side environment variables (e.g., `process.env.THIRD_PARTY_API_URL`). The `/api` proxy paths are primarily for client-side requests to bypass CORS.
     
 9. **Animations**:
   
@@ -123,8 +123,10 @@ To ensure consistency and leverage the chosen stack effectively, please follow t
     
   - Strive for strong typing and leverage TypeScript's features to improve code quality and maintainability. Avoid using `any` where possible.
     
+  - **Absolute Imports**: **The AI MUST use absolute imports for modules within the `src` directory** (e.g., `import { getDb } from 'lib/database';` instead of `import { getDb } from '../../lib/database';`). This enhances module resolution robustness, especially in Docker environments, and improves code readability.
+    
 15. **Environment Variables for Dyad Testing**:
   
-  - For testing and development within the Dyad environment, users can set environment variables directly through the Dyad UI. **It is critical to instruct the user to set any necessary environment variables (e.g., for external API URLs like `3RD_PARTY_API_URL` or database directories like `DATABASE_DIR`) within the Dyad UI's environment variable settings.** These variables will then be available to the running Next.js application, allowing for quick iteration before pushing to a Docker-based deployment. The AI should remind the user to set these when relevant.
+  - For testing and development within the Dyad environment, users can set environment variables directly through the Dyad UI. **It is critical to instruct the user to set any necessary environment variables (e.g., for external API URLs like `THIRD_PARTY_API_URL` or database directories like `DATABASE_DIR`) within the Dyad UI's environment variable settings.** These variables will then be available to the running Next.js application, allowing for quick iteration before pushing to a Docker-based deployment. The AI should remind the user to set these when relevant.
 
 By following these guidelines, we can build a more robust, maintainable, and consistent application within the Dockerized Next.js ecosystem.

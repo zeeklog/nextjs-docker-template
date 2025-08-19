@@ -1,76 +1,68 @@
-import Database from 'better-sqlite3'; // Import the default export from better-sqlite3
+import { Low } from 'lowdb';
+import { JSONFile } from '@foreast/file-async'; // Correct import for JSONFile
 import path from 'path';
-import fs from 'fs'; // Use fs (synchronous) or fs/promises (async) based on your need
+import fs from 'fs'; // Used only for checking directory existence synchronously for initial setup
 
-// This variable will hold our singleton database instance
-let dbInstance: Database | null = null;
+// Define the shape of your database
+interface DbSchema {
+  examples: { id: number; name: string; createdAt: string }[];
+}
 
-// Define the path for the SQLite database file
-const DB_FILE_PATH = process.env.DATABASE_URL?.replace('file:', '') || './data/dev.db';
-const DB_FULL_PATH = path.resolve(process.cwd(), DB_FILE_PATH);
+// Define the path for the JSON database file
+// It's expected to be relative to the project root, typically mounted via Docker volume.
+// We'll use a fixed name like 'db.json'
+const DB_FILE_NAME = 'db.json';
+const DB_DIR_PATH = process.env.DATABASE_DIR || './data'; // Allows configuring DB directory via env
+const DB_FULL_PATH = path.resolve(process.cwd(), DB_DIR_PATH, DB_FILE_NAME);
+
+let dbInstance: Low<DbSchema> | null = null;
 
 /**
- * Initializes and returns a singleton SQLite database connection.
- * If the database file doesn't exist, it will be created.
- * Also ensures that the necessary tables are created if they don't exist.
- * This function returns synchronously, but its setup is idempotent.
- * @returns {Database} The database instance.
+ * Initializes and returns a singleton Lowdb database instance.
+ * If the database file doesn't exist, it will be created with default data.
+ * @returns {Promise<Low<DbSchema>>} The database instance.
  */
-export function getDb(): Database { // Changed to synchronous return
+export async function getDb(): Promise<Low<DbSchema>> {
   if (dbInstance) {
+    // If the database is already initialized and read, return it.
+    if (dbInstance.data) {
+      return dbInstance;
+    }
+    // If dbInstance exists but data hasn't been read yet, wait for it.
+    await dbInstance.read();
     return dbInstance;
   }
 
   try {
-    // Ensure the directory for the database file exists synchronously for startup
+    // Ensure the directory for the database file exists
     const dir = path.dirname(DB_FULL_PATH);
-    if (!fs.existsSync(dir)) {
+    if (!fs.existsSync(dir)) { // Use sync version for initial dir creation
       fs.mkdirSync(dir, { recursive: true });
     }
 
-    // Open the database connection. `better-sqlite3` handles file creation.
-    // The `readonly: false` and `fileMustExist: false` are default for new DBs
-    dbInstance = new Database(DB_FULL_PATH);
+    // Configure the adapter for JSON file persistence
+    const adapter = new JSONFile<DbSchema>(DB_FULL_PATH);
+    dbInstance = new Low<DbSchema>(adapter);
 
-    // --- Schema Initialization ---
-    // Create the 'Example' table if it doesn't already exist.
-    // This ensures the table is available on first run or if dev.db is new.
-    dbInstance.exec(`
-      CREATE TABLE IF NOT EXISTS Example (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        createdAt TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
-      );
-    `);
+    // Read data from disk. If file doesn't exist, data will be null.
+    await dbInstance.read();
 
-    console.log(`Successfully connected to SQLite database at: ${DB_FULL_PATH}`);
+    // Set default data if the database file was empty or didn't exist
+    if (dbInstance.data === null || Object.keys(dbInstance.data).length === 0) {
+      dbInstance.data = { examples: [] }; // Initialize with an empty examples array
+      await dbInstance.write(); // Write the default data to disk
+      console.log(`Initialized new database at: ${DB_FULL_PATH}`);
+    } else {
+      console.log(`Loaded existing database from: ${DB_FULL_PATH}`);
+    }
+
     return dbInstance;
   } catch (error) {
-    console.error('Failed to initialize SQLite database with better-sqlite3:', error);
+    console.error('Failed to initialize Lowdb database:', error);
     throw error;
   }
 }
 
-// Ensure the database connection is closed when the Node.js process exits.
-// This is critical for better-sqlite3 to flush all changes to disk.
-process.on('exit', () => {
-  if (dbInstance && !dbInstance.close().open) {
-    console.log('Successfully closed SQLite database connection on process exit.');
-  }
-});
-
-// Handle Ctrl+C and other termination signals for graceful shutdown
-process.on('SIGINT', () => {
-  if (dbInstance && dbInstance.open) { // Check if it's still open before attempting to close
-    console.log('Closing SQLite database connection due to SIGINT.');
-    dbInstance.close();
-  }
-  process.exit();
-});
-process.on('SIGTERM', () => {
-  if (dbInstance && dbInstance.open) {
-    console.log('Closing SQLite database connection due to SIGTERM.');
-    dbInstance.close();
-  }
-  process.exit();
-});
+// Note: With Lowdb and JSONFile adapter, after any modification to db.data,
+// you must call `db.write()` to persist changes to the file.
+// This will be handled in the API routes.

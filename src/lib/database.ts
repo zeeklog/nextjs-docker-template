@@ -1,4 +1,5 @@
-import { Low, JSONFile } from 'lowdb'; // Import JSONFile directly from lowdb
+import { Low } from 'lowdb';
+import { JSONFile } from 'lowdb/node'; // Corrected import path for JSONFile
 import path from 'path';
 import fs from 'fs'; // Used only for checking directory existence synchronously for initial setup
 

@@ -4,10 +4,14 @@ import fs from 'fs';
 
 // Define types for our database documents
 interface Example {
-  id: number;
+  _id?: string;      // NeDB auto-generates this field
+  id: number;        // Our custom sequential ID
   name: string;
   createdAt: string;
 }
+
+// Type for creating a new example (without _id)
+type NewExample = Omit<Example, '_id'>;
 
 // Define the generic shape of your database for the template.
 interface DbSchema {
@@ -52,13 +56,13 @@ export const insertExample = (example: { name: string }): Promise<Example> => {
       if (err) reject(err);
       
       const newId = docs.length > 0 ? docs[0].id + 1 : 1;
-      const newExample: Example = {
+      const newExample: NewExample = {
         id: newId,
         name: example.name,
         createdAt: new Date().toISOString()
       };
 
-      db.insert(newExample, (err: Error | null, doc: any) => {
+      db.insert(newExample, (err: Error | null, doc: Example) => {
         if (err) reject(err);
         resolve(doc);
       });

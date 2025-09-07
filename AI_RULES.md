@@ -22,7 +22,7 @@ The application is built using the following core technologies:
   
 - **Forms**: React Hook Form for managing form state and validation, typically with Zod for schema validation.
   
-- **Database**: JSON database (`lowdb`) - A lightweight, file-based database that runs entirely in JavaScript.
+- **Database**: NeDB - A lightweight embedded database with MongoDB-like API.
   
 - **State Management**: Primarily React Context API and built-in React hooks (`useState`, `useReducer`).
   
@@ -64,17 +64,20 @@ To ensure consistency and leverage the chosen stack effectively, please follow t
     
   - **Validation**: Use `zod` for schema-based validation with `react-hook-form` via `@hookform/resolvers`.
     
-5. **Database (JSON Database with `lowdb`)**:
+5. **Database (NeDB)**:
   
-  - **Integration**: Interact with the JSON database directly using the **`lowdb` library** via the utility functions in `src/lib/database.ts`.
+  - **Integration**: Interact with the database using the NeDB API via the utility functions in `src/lib/database.ts`.
     
-  - **Schema Extension**: The `DbSchema` interface in `src/lib/database.database.ts` defines the structure of the JSON database. **When a user requests to store new types of data, the AI MUST extend this `DbSchema` interface by adding new properties (e.g., `myCustomData: { ... }[]`) and initialize them as empty arrays/objects in the `Low` constructor's default data.**
+  - **Schema Extension**: When adding new collections or data types:
+    1. Define appropriate TypeScript interfaces for the new data structure
+    2. Create new database instance for the collection if needed
+    3. Implement utility functions for common operations (create, read, update, delete)
     
-  - **Persistence**: Any changes to the database (adding, updating, deleting data by modifying `db.data`) **must be explicitly persisted to the `db.json` file by calling `await db.write()`** after the modification.
+  - **Persistence**: NeDB automatically persists data to .nedb files. No manual persistence calls needed.
     
-  - **Initialization**: The `db.json` file and its initial structure (`{ examples: [] }`) are automatically created with default empty data when the application first starts, so no manual database setup commands are required.
+  - **Initialization**: Database files are automatically created in the specified data directory when collections are first accessed. Indexes can be defined using `ensureIndex()`.
     
-  - **Database File**: The `db.json` file is expected to reside in the `/app/data/` directory (or a directory specified by `DATABASE_DIR` environment variable) within the Docker container for persistence via volume mapping.
+  - **Database Files**: The .nedb files reside in the `/app/data/` directory (or a directory specified by `DATABASE_DIR` environment variable) within the Docker container for persistence via volume mapping.
     
 6. **State Management**:
   
@@ -131,7 +134,7 @@ To ensure consistency and leverage the chosen stack effectively, please follow t
     
   - Strive for strong typing and leverage TypeScript's features to improve code quality and maintainability. Avoid using `any` where possible.
     
-  - **Absolute Imports**: **The AI MUST use absolute imports for modules within the `src` directory** (e.g., `import { getDb } from 'lib/database';` instead of `import { getDb } from '../../lib/database';`). Next.js automatically configures path aliases (e.g., `@/` maps to `src/`) for improved module resolution. **Therefore, imports should be structured like `import { MyComponent } from '@/components/MyComponent';` or `import { myUtility } from '@/lib/utils';`.** This enhances module resolution robustness, especially in Docker environments, and improves code readability.
+  - **Absolute Imports**: **The AI MUST use absolute imports for modules within the `src` directory** (e.g., `import { getDb } from '@/lib/database';` instead of `import { getDb } from '../../lib/database';`). Next.js automatically configures path aliases (e.g., `@/` maps to `src/`) for improved module resolution. **Therefore, imports should be structured like `import { MyComponent } from '@/components/MyComponent';` or `import { myUtility } from '@/lib/utils';`.** This enhances module resolution robustness, especially in Docker environments, and improves code readability.
     
 15. **Environment Variables for Dyad Testing**:
   

@@ -32,7 +32,7 @@ COPY --from=builder /app/public ./public
 # If you have static assets in a separate 'static' folder, copy them too
 # COPY --from=builder /app/static ./static
 
-# No native dependencies for lowdb or @foreast/file-async, so no extra build tools or libs needed.
+# NeDB is pure JavaScript, so no extra build tools or native dependencies needed
 
 # Expose the port Next.js will run on
 EXPOSE 3000

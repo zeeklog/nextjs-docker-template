@@ -1,59 +1,63 @@
-import { Low } from 'lowdb';
-import { JSONFile } from 'lowdb/node'; // Correct import path for JSONFile
+import Datastore from 'nedb';
 import path from 'path';
-import fs from 'fs'; // Used only for checking directory existence synchronously for initial setup
+import fs from 'fs';
 
 // Define the generic shape of your database for the template.
-// The AI will extend this schema based on user's specific app requirements.
 interface DbSchema {
   examples: { id: number; name: string; createdAt: string }[];
-  // Future: The AI will add new collections here based on user needs, e.g.,
-  // myCustomData: { id: string; value: string }[];
+  // Future: The AI will add new collections here based on user needs
 }
 
-// Define the path for the JSON database file
-const DB_FILE_NAME = 'db.json';
-const DB_DIR_PATH = process.env.DATABASE_DIR || './data'; // Allows configuring DB directory via env
+// Define the path for the database file
+const DB_FILE_NAME = 'examples.nedb';
+const DB_DIR_PATH = process.env.DATABASE_DIR || './data';
 const DB_FULL_PATH = path.resolve(process.cwd(), DB_DIR_PATH, DB_FILE_NAME);
 
-let dbInstance: Low<DbSchema> | null = null;
-
-/**
- * Initializes and returns a singleton Lowdb database instance.
- * If the database file doesn't exist, it will be created with default data.
- * @returns {Promise<Low<DbSchema>>} The database instance.
- */
-export async function getDb(): Promise<Low<DbSchema>> {
-  if (dbInstance) {
-    if (dbInstance.data) {
-      return dbInstance;
-    }
-    await dbInstance.read();
-    return dbInstance;
-  }
-
-  try {
-    // Ensure the directory for the database file exists
-    const dir = path.dirname(DB_FULL_PATH);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-
-    const adapter = new JSONFile<DbSchema>(DB_FULL_PATH);
-    // Provide initial generic structure for the template
-    dbInstance = new Low<DbSchema>(adapter, { examples: [] });
-
-    await dbInstance.read();
-
-    console.log(`Database initialized/loaded from: ${DB_FULL_PATH}`);
-
-    return dbInstance;
-  } catch (error) {
-    console.error('Failed to initialize Lowdb database:', error);
-    throw error;
-  }
+// Ensure the database directory exists
+if (!fs.existsSync(DB_DIR_PATH)) {
+  fs.mkdirSync(DB_DIR_PATH, { recursive: true });
 }
 
-// Note: With Lowdb and JSONFile adapter, after any modification to db.data,
-// you must call `db.write()` to persist changes to the file.
-// This will be handled in the API routes.
+// Initialize the database
+const db = new Datastore({ filename: DB_FULL_PATH, autoload: true });
+
+// Create indexes
+db.ensureIndex({ fieldName: 'id', unique: true });
+
+/**
+ * Gets all examples from the database
+ */
+export const getExamples = (): Promise<any[]> => {
+  return new Promise((resolve, reject) => {
+    db.find({}, (err: Error | null, docs: any[]) => {
+      if (err) reject(err);
+      resolve(docs);
+    });
+  });
+};
+
+/**
+ * Inserts a new example into the database
+ */
+export const insertExample = (example: { name: string }): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    db.find({}).sort({ id: -1 }).limit(1).exec((err: Error | null, docs: any[]) => {
+      if (err) reject(err);
+      
+      const newId = docs.length > 0 ? docs[0].id + 1 : 1;
+      const newExample = {
+        id: newId,
+        name: example.name,
+        createdAt: new Date().toISOString()
+      };
+
+      db.insert(newExample, (err: Error | null, doc: any) => {
+        if (err) reject(err);
+        resolve(doc);
+      });
+    });
+  });
+};
+
+// Export the db instance for direct access if needed
+export const getDb = () => db;

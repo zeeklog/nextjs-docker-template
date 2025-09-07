@@ -1,14 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getDb } from 'lib/database'; // Changed to absolute import
+import { getExamples, insertExample } from '@/lib/database';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const db = await getDb(); // Get the Lowdb instance
-
     if (req.method === 'GET') {
       // Handle GET requests to fetch examples
-      // Access data directly from db.data
-      const examples = db.data?.examples || [];
+      const examples = await getExamples();
       return res.status(200).json(examples);
     } else if (req.method === 'POST') {
       // Handle POST requests to create a new example
@@ -17,21 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ message: 'Name is required' });
       }
 
-      // Generate a simple ID (lowdb doesn't auto-increment like SQL dbs)
-      const examples = db.data?.examples || [];
-      const newId = examples.length > 0 ? Math.max(...examples.map(e => e.id)) + 1 : 1;
-
-      const newExample = {
-        id: newId,
-        name,
-        createdAt: new Date().toISOString(),
-      };
-
-      // Add the new example to the array
-      db.data?.examples.push(newExample);
-
-      // Write changes to the JSON file
-      await db.write();
+      const newExample = await insertExample({ name });
 
       return res.status(201).json(newExample);
     } else {

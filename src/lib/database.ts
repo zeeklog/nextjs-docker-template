@@ -2,8 +2,23 @@ import Datastore from '@seald-io/nedb';
 import path from 'path';
 import fs from 'fs';
 
+/**
+ * Next.js App Router Route Handler Type Guide
+ * 
+ * When creating dynamic route handlers (e.g., [id]/route.ts), always use the correct parameter typing:
+ * 
+ * export async function GET(
+ *   request: Request,
+ *   { params }: { params: { id: string } }
+ * ) {
+ *   // Note: params.id will be a string, so convert if needed:
+ *   const id = parseInt(params.id, 10);
+ *   // ... rest of your handler
+ * }
+ */
+
 // Define types for our database documents
-interface Example {
+export interface Example {
   _id?: string;      // NeDB auto-generates this field
   id: number;        // Our custom sequential ID
   name: string;
@@ -11,7 +26,7 @@ interface Example {
 }
 
 // Type for creating a new example (without _id)
-type NewExample = Omit<Example, '_id'>;
+export type NewExample = Omit<Example, '_id'>;
 
 // Define the generic shape of your database for the template.
 interface DbSchema {
@@ -66,6 +81,47 @@ export const insertExample = (example: { name: string }): Promise<Example> => {
         if (err) reject(err);
         resolve(doc);
       });
+    });
+  });
+};
+
+/**
+ * Gets a single example by ID
+ */
+export const getExampleById = (id: number): Promise<Example | null> => {
+  return new Promise((resolve, reject) => {
+    db.findOne<Example>({ id }, (err: Error | null, doc: Example | null) => {
+      if (err) reject(err);
+      resolve(doc);
+    });
+  });
+};
+
+/**
+ * Updates an example by ID
+ */
+export const updateExample = (id: number, update: Partial<Example>): Promise<Example | null> => {
+  return new Promise((resolve, reject) => {
+    db.update<Example>(
+      { id },
+      { $set: update },
+      { returnUpdatedDocs: true },
+      (err: Error | null, numAffected: number, doc: Example | null) => {
+        if (err) reject(err);
+        resolve(doc);
+      }
+    );
+  });
+};
+
+/**
+ * Deletes an example by ID
+ */
+export const deleteExample = (id: number): Promise<number> => {
+  return new Promise((resolve, reject) => {
+    db.remove({ id }, {}, (err: Error | null, n: number) => {
+      if (err) reject(err);
+      resolve(n);
     });
   });
 };

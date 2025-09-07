@@ -1,6 +1,13 @@
-import Datastore from 'nedb';
+import Datastore from '@seald-io/nedb';
 import path from 'path';
 import fs from 'fs';
+
+// Define types for our database documents
+interface Example {
+  id: number;
+  name: string;
+  createdAt: string;
+}
 
 // Define the generic shape of your database for the template.
 interface DbSchema {
@@ -27,9 +34,9 @@ db.ensureIndex({ fieldName: 'id', unique: true });
 /**
  * Gets all examples from the database
  */
-export const getExamples = (): Promise<any[]> => {
+export const getExamples = (): Promise<Example[]> => {
   return new Promise((resolve, reject) => {
-    db.find({}, (err: Error | null, docs: any[]) => {
+    db.find<Example>({}, (err: Error | null, docs: Example[]) => {
       if (err) reject(err);
       resolve(docs);
     });
@@ -39,13 +46,13 @@ export const getExamples = (): Promise<any[]> => {
 /**
  * Inserts a new example into the database
  */
-export const insertExample = (example: { name: string }): Promise<any> => {
+export const insertExample = (example: { name: string }): Promise<Example> => {
   return new Promise((resolve, reject) => {
-    db.find({}).sort({ id: -1 }).limit(1).exec((err: Error | null, docs: any[]) => {
+    db.find<Example>({}).sort({ id: -1 }).limit(1).exec((err: Error | null, docs: Example[]) => {
       if (err) reject(err);
       
       const newId = docs.length > 0 ? docs[0].id + 1 : 1;
-      const newExample = {
+      const newExample: Example = {
         id: newId,
         name: example.name,
         createdAt: new Date().toISOString()

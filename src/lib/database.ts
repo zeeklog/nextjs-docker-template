@@ -3,18 +3,31 @@ import path from 'path';
 import fs from 'fs';
 
 /**
- * Next.js App Router Route Handler Type Guide
+ * Next.js App Router Route Handler Guide
  * 
- * When creating dynamic route handlers (e.g., [id]/route.ts), always use the correct parameter typing:
+ * For Next.js 15+ compatibility, avoid using the params object in route handlers.
+ * Instead, use the getRouteParam utility from @/lib/utils:
  * 
- * export async function GET(
- *   request: Request,
- *   { params }: { params: { id: string } }
- * ) {
- *   // Note: params.id will be a string, so convert if needed:
+ * // AVOID this pattern (prone to typing issues):
+ * export async function GET(req: Request, { params }: { params: { id: string } }) {
  *   const id = parseInt(params.id, 10);
- *   // ... rest of your handler
+ *   // ...
  * }
+ * 
+ * // USE this pattern instead (reliable across Next.js versions):
+ * import { getNumericRouteParam, createErrorResponse } from '@/lib/utils';
+ * 
+ * export async function GET(req: Request) {
+ *   const id = getNumericRouteParam(req, 'id');
+ *   if (!id) return createErrorResponse('Invalid ID', 400);
+ *   // ...
+ * }
+ * 
+ * This approach:
+ * 1. Works reliably across Next.js versions
+ * 2. Provides better type safety
+ * 3. Includes built-in parameter validation
+ * 4. Avoids common pitfalls with dynamic route typing
  */
 
 // Define types for our database documents

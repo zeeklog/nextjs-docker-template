@@ -1,4 +1,4 @@
-# Dyad Next.js Docker Template
+# Next.js Docker Template
 
 This template provides a robust boilerplate for building and deploying Next.js applications fully containerized with Docker, leveraging GitHub Container Registry (GHCR) for image hosting, and using a **pure JavaScript JSON database (`lowdb`)** as the backend. It also includes configuration for Next.js API proxying to handle external API integrations and CORS issues seamlessly.
 
@@ -13,9 +13,7 @@ This template provides a robust boilerplate for building and deploying Next.js a
 - **JSON Database (`lowdb`)**: A lightweight, file-based JSON database that runs entirely in JavaScript. This simplifies database setup by eliminating native dependency issues and manual migration commands.
   
 - **Next.js API Proxying (Rewrites)**: Built-in configuration to proxy requests to external APIs from your Next.js backend, helping to bypass client-side CORS restrictions.
-  
-- **Dyad-ready**: Optimized for deployment on the Dyad platform, leveraging your GHCR-hosted Docker image.
-  
+    
 
 ## 🚀 Getting Started
 
@@ -102,7 +100,7 @@ This template includes a `docker-compose.yml` file to quickly spin up your appli
     
   - Maps port `3000` from the container to `3000` on your host machine. You can change `3000:3000` in `docker-compose.yml` to, for example, `8080:3000` to access it on port 8080.
     
-  - Creates a Docker volume (`dyad_db_data`) to persist your JSON database file (`db.json`), ensuring your data isn't lost when the container is stopped or removed.
+  - Creates a Docker volume (`zeeklog_db_data`) to persist your JSON database file (`db.json`), ensuring your data isn't lost when the container is stopped or removed.
     
 3. **Access Your Application**:
   Once the containers are running, open your web browser and navigate to: `http://localhost:3000`
@@ -147,16 +145,6 @@ The `next.config.ts` file is configured to allow proxying requests from your Nex
   
   - **Note to AI/Users**: When integrating with a *new* external API, the AI should **add a new rewrite rule** to `next.config.ts` for that specific API and guide the user to set the corresponding environment variable.
 
-## 🚀 Deployment to Dyad
-
-This template is designed for easy deployment to Dyad. The `dyad.yaml` file specifies how Dyad should deploy your application.
-
-- **Image Source**: `dyad.yaml` points to your Docker image on GHCR (e.g., `image: ghcr.io/your-github-username/your-repo-name:latest`).
-  
-- **Ports**: It exposes port `3000`, matching your Next.js application's internal port.
-  
-- **Dyad CLI**: Refer to the official Dyad documentation on how to use their CLI to deploy your application using this template and your GHCR image.
-  
 
 ## 🛠️ Customization
 
@@ -174,7 +162,3 @@ Feel free to customize this template to fit your specific needs:
   
 - **GitHub Actions**: Customize the CI/CD workflow (`.github/workflows/main.yml`) for different branching strategies or testing.
   
-
-## ❓ Questions or Issues
-
-If you have questions or encounter issues, please refer to the documentation for Next.js, Docker, `lowdb`, GitHub Actions, and Dyad. If you believe there's an issue with the template itself, consider opening an issue in the template repository.
